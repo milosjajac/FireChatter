@@ -25,6 +25,12 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
+import com.google.firebase.auth.TwitterAuthProvider;
+import com.twitter.sdk.android.core.Callback;
+import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterException;
+import com.twitter.sdk.android.core.TwitterSession;
+import com.twitter.sdk.android.core.identity.TwitterAuthClient;
 
 import java.util.Arrays;
 
@@ -38,6 +44,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginBtn;
 
     CallbackManager fbCallbackManager;
+    TwitterAuthClient twitterAuthClient;
     private FirebaseAuth auth;
 
     @Override
@@ -93,6 +100,8 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onError(FacebookException error) { }
         });
+
+        twitterAuthClient = new TwitterAuthClient();
     }
 
     private void goToMainIfAuthenticated() {
@@ -106,6 +115,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         fbCallbackManager.onActivityResult(requestCode, resultCode, data);
+        twitterAuthClient.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
     }
 
@@ -128,14 +138,49 @@ public class LoginActivity extends AppCompatActivity {
                             goToMainIfAuthenticated();
                             progressDialog.dismiss();
                         } else {
-                            Toast.makeText(LoginActivity.this, "nay :(", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, "Facebook login failed", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
     }
 
     private void onTwitterLoginClick() {
+        twitterAuthClient.authorize(this, new Callback<TwitterSession>() {
+            @Override
+            public void success(Result<TwitterSession> result) {
+                handleTwitterLogin(result.data);
+            }
 
+            @Override
+            public void failure(TwitterException exception) {
+                Toast.makeText(LoginActivity.this, "Twitter login failed", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void handleTwitterLogin(TwitterSession session) {
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage(getString(R.string.login_activity_progress));
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        AuthCredential credential = TwitterAuthProvider.getCredential(
+                session.getAuthToken().token,
+                session.getAuthToken().secret
+        );
+
+        auth.signInWithCredential(credential)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            goToMainIfAuthenticated();
+                            progressDialog.dismiss();
+                        } else {
+                            Toast.makeText(LoginActivity.this, "Twitter login failed", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 
     private void onGplusLoginClick() {
