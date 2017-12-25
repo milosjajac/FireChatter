@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">FireChatter</string>
+
+    <string name="login_activity_connect">Connect with</string>
+    <string name="login_activity_connect_or">or</string>
+    <string name="login_activity_email_hint">Email&#8230;</string>
+    <string name="login_activity_password_hint">Password&#8230;</string>
+    <string name="login_activity_login_btn">Login</string>
+    <string name="login_activity_register_btn"><u>Register</u></string>
 </resources>
