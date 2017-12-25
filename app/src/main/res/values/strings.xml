@@ -11,4 +11,7 @@
     <string name="login_activity_invalid_email_error">Invalid email format</string>
     <string name="login_activity_invalid_password_error">Invalid password</string>
     <string name="login_activity_no_user_error">User with that email does not exist</string>
+
+    <string name="facebook_app_id">2123485874335698</string>
+    <string name="fb_login_protocol_scheme">fb2123485874335698</string>
 </resources>

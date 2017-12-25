@@ -11,13 +11,22 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
+
+import java.util.Arrays;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -28,12 +37,16 @@ public class LoginActivity extends AppCompatActivity {
     private EditText passwordEt;
     private Button loginBtn;
 
-    private FirebaseAuth mAuth;
+    CallbackManager fbCallbackManager;
+    private FirebaseAuth auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        auth = FirebaseAuth.getInstance();
+        goToMainIfAuthenticated();
 
         fbBtn = findViewById(R.id.login_activity_fb_btn);
         twitterBtn = findViewById(R.id.login_activity_twitter_btn);
@@ -67,12 +80,58 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        fbCallbackManager = CallbackManager.Factory.create();
+        LoginManager.getInstance().registerCallback(fbCallbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                handleFacebookLogin(loginResult.getAccessToken());
+            }
 
-        mAuth = FirebaseAuth.getInstance();
+            @Override
+            public void onCancel() { }
+
+            @Override
+            public void onError(FacebookException error) { }
+        });
+    }
+
+    private void goToMainIfAuthenticated() {
+        boolean loggedIn = auth.getCurrentUser() != null;
+        if (loggedIn) {
+            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            finish();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        fbCallbackManager.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private void onFbLoginClick() {
+        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email", "public_profile"));
+    }
 
+    private void handleFacebookLogin(AccessToken token) {
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage(getString(R.string.login_activity_progress));
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
+        auth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            goToMainIfAuthenticated();
+                            progressDialog.dismiss();
+                        } else {
+                            Toast.makeText(LoginActivity.this, "nay :(", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 
     private void onTwitterLoginClick() {
@@ -80,7 +139,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void onGplusLoginClick() {
-        
+
     }
 
     private void onLoginClick() {
@@ -92,7 +151,7 @@ public class LoginActivity extends AppCompatActivity {
         final String email = emailEt.getText().toString().trim();
         String password = passwordEt.getText().toString().trim();
 
-        mAuth.signInWithEmailAndPassword(email, password)
+        auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
