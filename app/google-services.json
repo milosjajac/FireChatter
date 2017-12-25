@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "62066707571",
+    "firebase_url": "https://firechatter-77310.firebaseio.com",
+    "project_id": "firechatter-77310",
+    "storage_bucket": "firechatter-77310.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:62066707571:android:56192a8e59afd1b9",
+        "android_client_info": {
+          "package_name": "nsi.firechatter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "62066707571-qptn0104bd2v0mua6cp05fm5bplif54d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxlGrBP3wDJ2pSqRMooZrM8NUB5W9uTf8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
