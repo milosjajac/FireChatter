@@ -17,6 +17,11 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -25,6 +30,7 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.TwitterAuthProvider;
 import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
@@ -36,6 +42,8 @@ import java.util.Arrays;
 
 public class LoginActivity extends AppCompatActivity {
 
+    private static final int RC_SIGN_IN = 1;
+
     private ImageButton fbBtn;
     private ImageButton twitterBtn;
     private ImageButton gplusBtn;
@@ -43,9 +51,11 @@ public class LoginActivity extends AppCompatActivity {
     private EditText passwordEt;
     private Button loginBtn;
 
-    CallbackManager fbCallbackManager;
-    TwitterAuthClient twitterAuthClient;
+    private CallbackManager fbCallbackManager;
+    private TwitterAuthClient twitterAuthClient;
     private FirebaseAuth auth;
+    private GoogleSignInClient googleSignInClient;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +112,12 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         twitterAuthClient = new TwitterAuthClient();
+
+        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions);
     }
 
     private void goToMainIfAuthenticated() {
@@ -114,9 +130,14 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         fbCallbackManager.onActivityResult(requestCode, resultCode, data);
         twitterAuthClient.onActivityResult(requestCode, resultCode, data);
-        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == RC_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            handleGplusLogin(task);
+        }
     }
 
     private void onFbLoginClick() {
@@ -184,7 +205,34 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void onGplusLoginClick() {
+        Intent signInIntent = googleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
 
+    private void handleGplusLogin(Task<GoogleSignInAccount> task) {
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage(getString(R.string.login_activity_progress));
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+        
+        try {
+            GoogleSignInAccount account = task.getResult(ApiException.class);
+            AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+            auth.signInWithCredential(credential)
+                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                goToMainIfAuthenticated();
+                                progressDialog.dismiss();
+                            } else {
+                                Toast.makeText(LoginActivity.this, "Gplus login failed", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+        } catch (ApiException e) {
+            Toast.makeText(this, "Gplus login failed", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void onLoginClick() {
