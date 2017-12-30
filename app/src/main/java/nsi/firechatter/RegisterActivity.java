@@ -1,29 +1,59 @@
 package nsi.firechatter;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import java.io.File;
 
 public class RegisterActivity extends AppCompatActivity {
+
+    private static final int RC_STORAGE_PERMISSION = 1;
+    private static final int RC_CHOOSE_IMAGE = 2;
 
     private EditText nameEt;
     private EditText emailEt;
     private EditText passwordEt;
     private EditText repeatPasswordEt;
+    private ImageView avatarImg;
+    private TextView avatarErrorTv;
+    private Button avatarBtn;
     private Button registerBtn;
+
+    private String selectedAvatarLocalPath;
+
+    private DatabaseReference usersDbRef = FirebaseDatabase.getInstance().getReference().child("users");
+    private StorageReference avatarsStorageRef = FirebaseStorage.getInstance().getReference().child("avatars");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,8 +64,17 @@ public class RegisterActivity extends AppCompatActivity {
         emailEt = findViewById(R.id.register_activity_email_et);
         passwordEt = findViewById(R.id.register_activity_password_et);
         repeatPasswordEt = findViewById(R.id.register_activity_repeat_password_et);
+        avatarImg = findViewById(R.id.register_activity_avatar_img);
+        avatarErrorTv = findViewById(R.id.register_activity_avatar_error_txt);
+        avatarBtn = findViewById(R.id.register_activity_avatar_btn);
         registerBtn = findViewById(R.id.register_activity_register_btn);
 
+        avatarBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onAvatarButtonClick();
+            }
+        });
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -44,9 +83,74 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
+    private void onAvatarButtonClick() {
+        checkReadStoragePermission();
+    }
+
+    private void checkReadStoragePermission() {
+        final String storagePermission = Manifest.permission.READ_EXTERNAL_STORAGE;
+        int userPermission = ContextCompat.checkSelfPermission(RegisterActivity.this, storagePermission);
+        boolean permissionGranted = userPermission == PackageManager.PERMISSION_GRANTED;
+
+        if (!permissionGranted) {
+            ActivityCompat.requestPermissions(RegisterActivity.this, new String[]{storagePermission},
+                    RC_STORAGE_PERMISSION);
+        } else {
+            onStoragePermissionGranted();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == RC_STORAGE_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                onStoragePermissionGranted();
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    private void onStoragePermissionGranted() {
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK);
+        galleryIntent.setType("image/*");
+
+        startActivityForResult(galleryIntent, RC_CHOOSE_IMAGE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_CHOOSE_IMAGE && resultCode == Activity.RESULT_OK) {
+            if (data != null && data.getData() != null) {
+                selectedAvatarLocalPath = getRealPathFromURI(data.getData());
+            }
+
+            avatarImg.setBackground(null);
+            Glide.with(this)
+                    .load(selectedAvatarLocalPath)
+                    .into(avatarImg);
+            avatarErrorTv.setError(null);
+        }
+    }
+
+    private String getRealPathFromURI(Uri contentUri) {
+        Cursor cursor = null;
+        try {
+            String[] proj = { MediaStore.Images.Media.DATA };
+            cursor = this.getContentResolver().query(contentUri,  proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
     private void onRegisterClick() {
-        String name = nameEt.getText().toString().trim();
-        String email = emailEt.getText().toString().trim();
+        final String name = nameEt.getText().toString().trim();
+        final String email = emailEt.getText().toString().trim();
         String password = passwordEt.getText().toString().trim();
         String repeatPassword = repeatPasswordEt.getText().toString().trim();
 
@@ -68,12 +172,28 @@ public class RegisterActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            String newUserId = auth.getCurrentUser().getUid();
+                            final String newUserId = auth.getCurrentUser().getUid();
+                            String avatarFileName = newUserId + ".jpg";
 
-                            progressDialog.dismiss();
-                            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-                            startActivity(intent);
-                            finish();
+                            avatarsStorageRef.child(avatarFileName).putFile(Uri.fromFile(new File(selectedAvatarLocalPath)))
+                                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                        @Override
+                                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                            String storageAvatarUri = taskSnapshot.getDownloadUrl().toString();
+                                            User newUser = new User(email, name, storageAvatarUri);
+
+                                            usersDbRef.child(newUserId).setValue(newUser)
+                                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                            progressDialog.dismiss();
+                                                            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                                                            startActivity(intent);
+                                                            finish();
+                                                        }
+                                                    });
+                                        }
+                                    });
                         } else {
                             progressDialog.dismiss();
                             try {

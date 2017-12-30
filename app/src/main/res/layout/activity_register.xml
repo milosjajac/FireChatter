@@ -52,6 +52,40 @@
         android:hint="@string/register_activity_repeat_password_hint"
         android:inputType="textPassword"/>
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/register_activity_avatar_img"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/default_avatar"
+            android:layout_alignParentLeft="true"/>
+
+        <TextView
+            android:id="@+id/register_activity_avatar_error_txt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@id/register_activity_avatar_img"/>
+
+        <Button
+            android:id="@+id/register_activity_avatar_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:drawableLeft="@drawable/ic_image_24dp"
+            android:drawableTint="@android:color/white"
+            android:drawablePadding="8dp"
+            android:text="@string/register_activity_avatar_btn"
+            android:theme="@style/PrimaryButton"/>
+
+    </RelativeLayout>
+
     <Button
         android:id="@+id/register_activity_register_btn"
         android:layout_width="match_parent"
