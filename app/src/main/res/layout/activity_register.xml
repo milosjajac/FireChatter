@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:padding="16dp"
     android:orientation="vertical"
-    tools:context="nsi.firechatter.RegisterActivity">
+    tools:context="nsi.firechatter.activities.RegisterActivity">
 
     <ImageView
         android:id="@+id/imageView"

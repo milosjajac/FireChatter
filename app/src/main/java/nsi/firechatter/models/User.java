@@ -1,4 +1,4 @@
-package nsi.firechatter;
+package nsi.firechatter.models;
 
 import com.google.firebase.database.Exclude;
 

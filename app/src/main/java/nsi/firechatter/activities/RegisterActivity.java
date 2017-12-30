@@ -1,4 +1,4 @@
-package nsi.firechatter;
+package nsi.firechatter.activities;
 
 import android.Manifest;
 import android.app.Activity;
@@ -35,6 +35,9 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
+
+import nsi.firechatter.R;
+import nsi.firechatter.models.User;
 
 public class RegisterActivity extends AppCompatActivity {
 

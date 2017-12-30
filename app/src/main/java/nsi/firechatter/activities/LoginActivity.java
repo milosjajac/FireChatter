@@ -1,4 +1,4 @@
-package nsi.firechatter;
+package nsi.firechatter.activities;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -47,6 +47,9 @@ import com.twitter.sdk.android.core.TwitterSession;
 import com.twitter.sdk.android.core.identity.TwitterAuthClient;
 
 import java.util.Arrays;
+
+import nsi.firechatter.R;
+import nsi.firechatter.models.User;
 
 public class LoginActivity extends AppCompatActivity {
 
