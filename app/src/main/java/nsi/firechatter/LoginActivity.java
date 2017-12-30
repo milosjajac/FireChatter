@@ -167,10 +167,10 @@ public class LoginActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             goToMainIfAuthenticated();
-                            progressDialog.dismiss();
                         } else {
-                            Toast.makeText(LoginActivity.this, "Facebook login failed", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         }
+                        progressDialog.dismiss();
                     }
                 });
     }
@@ -184,7 +184,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void failure(TwitterException exception) {
-                Toast.makeText(LoginActivity.this, "Twitter login failed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -206,10 +206,10 @@ public class LoginActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             goToMainIfAuthenticated();
-                            progressDialog.dismiss();
                         } else {
-                            Toast.makeText(LoginActivity.this, "Twitter login failed", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         }
+                        progressDialog.dismiss();
                     }
                 });
     }
@@ -234,14 +234,14 @@ public class LoginActivity extends AppCompatActivity {
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
                                 goToMainIfAuthenticated();
-                                progressDialog.dismiss();
                             } else {
-                                Toast.makeText(LoginActivity.this, "Gplus login failed", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(LoginActivity.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
                             }
+                            progressDialog.dismiss();
                         }
                     });
         } catch (ApiException e) {
-            Toast.makeText(this, "Gplus login failed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -258,7 +258,6 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        progressDialog.dismiss();
                         if (task.isSuccessful()) {
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             startActivity(intent);
@@ -281,6 +280,7 @@ public class LoginActivity extends AppCompatActivity {
                                 Toast.makeText(LoginActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
                             }
                         }
+                        progressDialog.dismiss();
                     }
                 });
     }
