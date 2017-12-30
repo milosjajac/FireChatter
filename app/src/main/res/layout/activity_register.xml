@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:orientation="vertical"
+    tools:context="nsi.firechatter.RegisterActivity">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="32dp"
+        app:srcCompat="@drawable/firechatter_logo_name"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:text="@string/register_activity_create"/>
+
+    <EditText
+        android:id="@+id/register_activity_name_et"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/register_activity_name_hint"
+        android:inputType="textPersonName"/>
+
+    <EditText
+        android:id="@+id/register_activity_email_et"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/login_activity_email_hint"
+        android:inputType="textEmailAddress"/>
+
+    <EditText
+        android:id="@+id/register_activity_password_et"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/login_activity_password_hint"
+        android:inputType="textPassword"/>
+
+    <EditText
+        android:id="@+id/register_activity_repeat_password_et"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/register_activity_repeat_password_hint"
+        android:inputType="textPassword"/>
+
+    <Button
+        android:id="@+id/register_activity_register_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:theme="@style/PrimaryButton"
+        android:text="@string/register_activity_register_btn"/>
+
+</LinearLayout>

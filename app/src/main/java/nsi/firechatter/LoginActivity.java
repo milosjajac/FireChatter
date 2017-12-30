@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -50,6 +51,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText emailEt;
     private EditText passwordEt;
     private Button loginBtn;
+    private TextView registerBtn;
 
     private CallbackManager fbCallbackManager;
     private TwitterAuthClient twitterAuthClient;
@@ -71,6 +73,7 @@ public class LoginActivity extends AppCompatActivity {
         emailEt = findViewById(R.id.login_activity_email_et);
         passwordEt = findViewById(R.id.login_activity_password_et);
         loginBtn = findViewById(R.id.login_activity_login_btn);
+        registerBtn = findViewById(R.id.login_activity_register_btn);
 
         fbBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,6 +99,13 @@ public class LoginActivity extends AppCompatActivity {
                 onLoginClick();
             }
         });
+        registerBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onRegisterClick();
+            }
+        });
+
 
         fbCallbackManager = CallbackManager.Factory.create();
         LoginManager.getInstance().registerCallback(fbCallbackManager, new FacebookCallback<LoginResult>() {
@@ -273,6 +283,10 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    private void onRegisterClick() {
+        startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
     }
 
 }

@@ -12,6 +12,15 @@
     <string name="login_activity_invalid_password_error">Invalid password</string>
     <string name="login_activity_no_user_error">User with that email does not exist</string>
 
+    <string name="register_activity_create">Create an account</string>
+    <string name="register_activity_name_hint">Name&#8230;</string>
+    <string name="register_activity_repeat_password_hint">Repeat password&#8230;</string>
+    <string name="register_activity_register_btn">Register</string>
+    <string name="register_activity_progress">Registering&#8230;</string>
+    <string name="register_activity_mismatch_password_error">Passwords don\'t match</string>
+    <string name="register_activity_email_exists_error">That email is already in use</string>
+    <string name="register_activity_weak_password_error">Password too weak</string>
+
     <string name="facebook_app_id">2123485874335698</string>
     <string name="fb_login_protocol_scheme">fb2123485874335698</string>
 </resources>
