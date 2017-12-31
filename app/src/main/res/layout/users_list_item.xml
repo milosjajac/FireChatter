@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="?android:attr/listPreferredItemHeight"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:gravity="center_vertical">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/users_item_avatar"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentLeft="true"
+        app:civ_border_width="2dp"
+        app:civ_border_color="@color/colorPrimaryLight"
+        android:src="@drawable/ic_person_24dp"/>
+    
+    <TextView
+        android:id="@+id/users_item_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="24dp"
+        android:layout_marginTop="12dp"
+        android:layout_toRightOf="@id/users_item_avatar"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:textSize="22sp"
+        android:textColor="@color/colorPrimaryDark"
+        android:text="Pera Peric"/>
+
+    <CheckBox
+        android:id="@+id/users_item_chk"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"/>
+
+</RelativeLayout>
