@@ -65,7 +65,7 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
         return chats.size();
     }
 
-    public class ChatViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class ChatViewHolder extends RecyclerView.ViewHolder {
         public final View chatView;
         public final ImageView chatAvatarImg;
         public final TextView chatNameTv;
@@ -79,14 +79,6 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
             chatAvatarImg = chatView.findViewById(R.id.chats_item_avatar);
             chatNameTv = chatView.findViewById(R.id.chats_item_name);
             chatLastTv = chatView.findViewById(R.id.chats_item_last);
-
-            chatView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            Chat chat = chats.get(getAdapterPosition());
-            chatInteractionListener.onChatClick(chat);
         }
     }
 

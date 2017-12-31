@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import nsi.firechatter.R;
@@ -21,6 +22,7 @@ public class UsersRecyclerViewAdapter extends RecyclerView.Adapter<UsersRecycler
 
     private Context context;
     private List<User> users;
+    private List<String> selectedUserIds = new ArrayList<>();
     private OnUsersInteractionListener usersInteractionListener;
 
     public interface OnUsersInteractionListener {
@@ -55,10 +57,23 @@ public class UsersRecyclerViewAdapter extends RecyclerView.Adapter<UsersRecycler
             @Override
             public void onClick(View v) {
                 if (usersInteractionListener != null) {
-//                    usersInteractionListener.onChatClick(holder.user);
+                    updateUserSelectionList(holder.user.id);
+                    holder.userChk.toggle();
                 }
             }
         });
+    }
+
+    private void updateUserSelectionList(String userId) {
+        if (selectedUserIds.contains(userId)) {
+            selectedUserIds.remove(userId);
+        } else {
+            selectedUserIds.add(userId);
+        }
+    }
+
+    public List<String> getSelectedUserIds() {
+        return this.selectedUserIds;
     }
 
     @Override
@@ -66,7 +81,7 @@ public class UsersRecyclerViewAdapter extends RecyclerView.Adapter<UsersRecycler
         return users.size();
     }
 
-    public class UserViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class UserViewHolder extends RecyclerView.ViewHolder {
         public final View userView;
         public final ImageView userAvatarImg;
         public final TextView userNameTv;
@@ -80,13 +95,6 @@ public class UsersRecyclerViewAdapter extends RecyclerView.Adapter<UsersRecycler
             userAvatarImg = userView.findViewById(R.id.users_item_avatar);
             userNameTv = userView.findViewById(R.id.users_item_name);
             userChk = userView.findViewById(R.id.users_item_chk);
-
-            userView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            userChk.toggle();
         }
     }
 

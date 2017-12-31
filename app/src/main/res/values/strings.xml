@@ -28,6 +28,8 @@
     <string name="main_menu_logout">Logout</string>
 
     <string name="users_activity_empty_msg">You\'re the only FireChatter user :(</string>
+    <string name="users_activity_none_selected_msg">Select some people first</string>
+    <string name="users_menu_finish">Finish</string>
 
     <string name="facebook_app_id">2123485874335698</string>
     <string name="fb_login_protocol_scheme">fb2123485874335698</string>

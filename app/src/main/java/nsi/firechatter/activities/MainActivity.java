@@ -127,11 +127,15 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_main_logout:
-                FirebaseAuth.getInstance().signOut();
-                startActivity(new Intent(MainActivity.this, LoginActivity.class));
-                finish();
+                onLogout();
                 break;
         }
         return true;
+    }
+
+    private void onLogout() {
+        FirebaseAuth.getInstance().signOut();
+        startActivity(new Intent(MainActivity.this, LoginActivity.class));
+        finish();
     }
 }
