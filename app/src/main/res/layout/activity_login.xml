@@ -98,19 +98,40 @@
 
     </LinearLayout>
 
-    <EditText
-        android:id="@+id/login_activity_email_et"
+    <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/login_activity_email_hint"
-        android:inputType="textEmailAddress"/>
+        android:id="@+id/login_activity_email_til">
 
-    <EditText
-        android:id="@+id/login_activity_password_et"
+        <android.support.design.widget.TextInputEditText
+            android:id="@+id/login_activity_email_et"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/login_activity_email_hint"
+            android:inputType="textEmailAddress"
+            android:maxLines="1"
+            android:textColor="@color/colorPrimaryLight" />
+
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/login_activity_password_hint"
-        android:inputType="textPassword"/>
+        android:id="@+id/login_activity_password_til"
+        app:passwordToggleEnabled="true"
+        app:passwordToggleDrawable="@drawable/ic_password_black_24dp"
+        app:passwordToggleTint="@color/colorPrimaryLight">
+
+        <android.support.design.widget.TextInputEditText
+            android:id="@+id/login_activity_password_et"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/login_activity_password_hint"
+            android:inputType="textPassword"
+            android:maxLines="1"
+            android:textColor="@color/colorPrimaryLight" />
+
+    </android.support.design.widget.TextInputLayout>
 
     <Button
         android:id="@+id/login_activity_login_btn"
