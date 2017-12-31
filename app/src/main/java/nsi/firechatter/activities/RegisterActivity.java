@@ -152,6 +152,11 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void onRegisterClick() {
+        if (!isFieldValid(nameEt) || !isFieldValid(emailEt) ||
+                !isFieldValid(passwordEt) || !isFieldValid(repeatPasswordEt)) {
+            return;
+        }
+
         final String name = nameEt.getText().toString().trim();
         final String email = emailEt.getText().toString().trim();
         String password = passwordEt.getText().toString().trim();
@@ -160,6 +165,12 @@ public class RegisterActivity extends AppCompatActivity {
         if (!password.equals(repeatPassword)) {
             repeatPasswordEt.setError(getString(R.string.register_activity_mismatch_password_error));
             repeatPasswordEt.requestFocus();
+            return;
+        }
+
+        if (selectedAvatarLocalPath == null || selectedAvatarLocalPath.isEmpty()) {
+            avatarErrorTv.setError(getString(R.string.register_activity_no_avatar_error));
+            avatarErrorTv.requestFocus();
             return;
         }
 
@@ -219,5 +230,14 @@ public class RegisterActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    private boolean isFieldValid(EditText et) {
+        if (et.getText().toString().trim().isEmpty()) {
+            et.setError(getString(R.string.login_activity_required_field_error));
+            et.requestFocus();
+            return false;
+        }
+        return true;
     }
 }

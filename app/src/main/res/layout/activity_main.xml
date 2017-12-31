@@ -1,16 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="nsi.firechatter.activities.MainActivity">
 
-    <Button
-        android:id="@+id/main_activity_logout_btn"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/main_activity_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentTop="true"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:titleTextColor="@android:color/white"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/main_activity_toolbar"
+        android:fillViewport="true">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/main_activity_chats_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layoutManager="LinearLayoutManager"
+            tools:listitem="@layout/chats_list_item"
+            android:visibility="gone"/>
+
+    </ScrollView>
+
+    <ProgressBar
+        android:id="@+id/main_activity_chats_progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="logout"/>
+        android:layout_centerInParent="true"/>
 
-</android.support.constraint.ConstraintLayout>
+    <TextView
+        android:id="@+id/main_activity_chats_empty_txt"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:visibility="gone"
+        android:text="@string/main_activity_chats_empty_msg" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/main_activity_new_btn"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginBottom="24dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        app:srcCompat="@drawable/ic_add_24dp"
+        android:tint="@color/colorPrimaryDark"/>
+
+</RelativeLayout>

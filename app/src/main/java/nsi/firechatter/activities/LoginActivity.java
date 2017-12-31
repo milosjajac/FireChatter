@@ -259,6 +259,10 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void onLoginClick() {
+        if (!isFieldValid(emailEt) || !isFieldValid(passwordEt)) {
+            return;
+        }
+
         final ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage(getString(R.string.login_activity_progress));
         progressDialog.setCancelable(false);
@@ -296,6 +300,15 @@ public class LoginActivity extends AppCompatActivity {
                         progressDialog.dismiss();
                     }
                 });
+    }
+
+    private boolean isFieldValid(EditText et) {
+        if (et.getText().toString().trim().isEmpty()) {
+            et.setError(getString(R.string.login_activity_required_field_error));
+            et.requestFocus();
+            return false;
+        }
+        return true;
     }
 
     private void onRegisterClick() {

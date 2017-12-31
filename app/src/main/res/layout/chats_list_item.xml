@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="?android:attr/listPreferredItemHeight"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:gravity="center_vertical">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/chats_item_avatar"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentLeft="true"
+        app:civ_border_width="2dp"
+        app:civ_border_color="@color/colorPrimaryLight"
+        android:src="@drawable/ic_group_24dp"/>
+    
+    <TextView
+        android:id="@+id/chats_item_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="24dp"
+        android:layout_toRightOf="@id/chats_item_avatar"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:textSize="22sp"
+        android:textColor="@color/colorPrimaryDark"
+        android:text="Pera Peric"/>
+
+    <TextView
+        android:id="@+id/chats_item_last"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@id/chats_item_name"
+        android:layout_alignBottom="@id/chats_item_avatar"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:textSize="16sp"
+        android:text="Sta bi bilo kad bi bilo"/>
+
+</RelativeLayout>
