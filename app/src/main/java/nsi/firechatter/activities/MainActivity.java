@@ -1,15 +1,13 @@
 package nsi.firechatter.activities;
 
 import android.content.Intent;
-import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.util.SortedList;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -23,16 +21,17 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
 import nsi.firechatter.R;
 import nsi.firechatter.adapters.ChatsRecyclerViewAdapter;
 import nsi.firechatter.models.Chat;
+import nsi.firechatter.models.User;
 
 public class MainActivity extends AppCompatActivity implements ChatsRecyclerViewAdapter.OnChatInteractionListener {
 
@@ -127,21 +126,32 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                 Set<String> memberIds = chat.members.keySet();
                 memberIds.remove(loggedUserId);
 
-                final List<String> memberNames = new ArrayList<>();
+                final List<User> otherMembers = new ArrayList<>();
                 final int[] counter = { memberIds.size() };
 
                 for (String memberId : memberIds) {
-                    usersDbRef.child(memberId).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
+                    usersDbRef.child(memberId).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
-                            memberNames.add((String) dataSnapshot.getValue());
+                            User user = dataSnapshot.getValue(User.class);
+                            otherMembers.add(user);
                             counter[0] -= 1;
 
                             if (counter[0] == 0) {
                                 String oldChatName = chat.name;
-                                chat.name = memberNames.get(0);
-                                for (int i = 1 ; i < memberNames.size(); i++) {
-                                    chat.name = chat.name + ", " + memberNames.get(i);
+                                chat.name = otherMembers.get(0).name;
+                                for (int i = 1 ; i < otherMembers.size(); i++) {
+                                    String nextName = otherMembers.get(i).name;
+
+                                    if (nextName.charAt(0) > chat.name.charAt(0)) {
+                                        chat.name = chat.name + ", " + nextName;
+                                    } else {
+                                        chat.name = nextName + ", " + chat.name;
+                                    }
+                                }
+
+                                if (otherMembers.size() == 1) {
+                                    chat.avatarUrl = otherMembers.get(0).avatarUrl;
                                 }
 
                                 chatsAdapter.notifyDataSetChanged();
@@ -174,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
 
     private int addChatToCorrectPosition(Chat chat) {
         int ind = 0;
-        while (ind < chats.size() && (long) chat.lastDate < (long) chats.get(ind).lastDate) {
+        while (ind < chats.size() && (long) chat.lastMsgDate < (long) chats.get(ind).lastMsgDate) {
             ind += 1;
         }
         chats.add(ind, chat);
@@ -183,7 +193,9 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
 
     @Override
     public void onChatClick(Chat chat) {
-
+        Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+        intent.putExtra(ChatActivity.EXTRA_CHAT_ID, chat.id);
+        startActivity(intent);
     }
 
     private void onNewClick() {

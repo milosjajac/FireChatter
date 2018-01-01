@@ -13,9 +13,11 @@ public class Chat {
     @Exclude
     public String name;
 
+    @Exclude
     public String avatarUrl;
-    public String last;
-    public Object lastDate;
+
+    public String lastMsgId;
+    public Object lastMsgDate;
     public Map<String, Boolean> members = new HashMap<>();
 
     public Chat() {

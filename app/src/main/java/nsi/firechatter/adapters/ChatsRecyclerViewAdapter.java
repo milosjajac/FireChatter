@@ -42,7 +42,7 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
     public void onBindViewHolder(final ChatViewHolder holder, int position) {
         holder.chat = chats.get(position);
         holder.chatNameTv.setText(holder.chat.name);
-        holder.chatLastTv.setText(holder.chat.last);
+        holder.chatLastTv.setText(holder.chat.lastMsgId);
 
         if (holder.chat.avatarUrl != null && !holder.chat.avatarUrl.isEmpty()) {
             Glide.with(context)

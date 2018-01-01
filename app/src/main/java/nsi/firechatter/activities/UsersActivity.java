@@ -191,7 +191,7 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
 
     private void openChatWithId(String chatId) {
         Intent intent = new Intent(UsersActivity.this, ChatActivity.class);
-        intent.putExtra("chatId", chatId);
+        intent.putExtra(ChatActivity.EXTRA_CHAT_ID, chatId);
         startActivity(intent);
         finish();
     }
@@ -200,7 +200,7 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
         userIds.add(FirebaseAuth.getInstance().getUid());
 
         Chat chat = new Chat();
-        chat.lastDate = ServerValue.TIMESTAMP;
+        chat.lastMsgDate = ServerValue.TIMESTAMP;
         for (String userId : userIds) {
             chat.members.put(userId, true);
         }

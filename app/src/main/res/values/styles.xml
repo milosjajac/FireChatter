@@ -19,4 +19,9 @@
         <item name="colorButtonNormal">@color/colorPrimary</item>
     </style>
 
+    <style name="IconButton" parent="Theme.AppCompat">
+        <item name="android:tint">@color/colorPrimary</item>
+        <item name="colorButtonNormal">@color/colorPrimary</item>
+    </style>
+
 </resources>

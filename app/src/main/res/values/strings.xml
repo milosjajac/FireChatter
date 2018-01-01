@@ -31,6 +31,8 @@
     <string name="users_activity_none_selected_msg">Select some people first</string>
     <string name="users_menu_finish">Finish</string>
 
+    <string name="chat_activity_message_hint">Type a message&#8230;</string>
+
     <string name="facebook_app_id">2123485874335698</string>
     <string name="fb_login_protocol_scheme">fb2123485874335698</string>
 </resources>
