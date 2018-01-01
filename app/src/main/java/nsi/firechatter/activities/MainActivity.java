@@ -28,6 +28,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import nsi.firechatter.R;
 import nsi.firechatter.adapters.ChatsRecyclerViewAdapter;
@@ -77,34 +78,107 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
 
     private void getUserChatsAndSetupUI() {
         String userId = FirebaseAuth.getInstance().getUid();
-        usersDbRef.child(userId).child("chats").orderByChild("lastDate")
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.getValue() == null) {
-                            chatsProgressBar.setVisibility(View.GONE);
-                            chatsEmptyText.setVisibility(View.VISIBLE);
-                        } else {
-                            for (DataSnapshot chatSnapshot : dataSnapshot.getChildren()) {
-                                Chat newChat = chatSnapshot.getValue(Chat.class);
-                                newChat.id = chatSnapshot.getKey();
-                                chats.add(0, newChat);
+        usersDbRef.child(userId).child("chats").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                getChatAndSetupUI(dataSnapshot.getKey());
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void getChatAndSetupUI(final String chatId) {
+        chatsDbRef.child(chatId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                chatsRecyclerView.setVisibility(View.VISIBLE);
+                chatsProgressBar.setVisibility(View.GONE);
+
+                final Chat chat = dataSnapshot.getValue(Chat.class);
+                chat.id = dataSnapshot.getKey();
+
+                int ind = chatIndexOf(chat);
+                if (ind == -1) {
+                    ind = addChatToCorrectPosition(chat);
+                } else {
+                    chats.set(ind, chat);
+                }
+
+                String loggedUserId = FirebaseAuth.getInstance().getUid();
+                Set<String> memberIds = chat.members.keySet();
+                memberIds.remove(loggedUserId);
+
+                final List<String> memberNames = new ArrayList<>();
+                final int[] counter = { memberIds.size() };
+
+                for (String memberId : memberIds) {
+                    usersDbRef.child(memberId).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            memberNames.add((String) dataSnapshot.getValue());
+                            counter[0] -= 1;
+
+                            if (counter[0] == 0) {
+                                String oldChatName = chat.name;
+                                chat.name = memberNames.get(0);
+                                for (int i = 1 ; i < memberNames.size(); i++) {
+                                    chat.name = chat.name + ", " + memberNames.get(i);
+                                }
+
+                                chatsAdapter.notifyDataSetChanged();
                             }
-
-                            chatsAdapter.notifyDataSetChanged();
-
-                            chatsRecyclerView.setVisibility(View.VISIBLE);
-                            chatsProgressBar.setVisibility(View.GONE);
                         }
 
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
 
-                    }
+                        }
+                    });
+                }
+            }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
 
-                    }
-                });
+            }
+        });
+    }
+
+    private int chatIndexOf(Chat chat) {
+        for (int i = 0; i < chats.size(); i++) {
+            if (chats.get(i).id == chat.id) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private int addChatToCorrectPosition(Chat chat) {
+        int ind = 0;
+        while (ind < chats.size() && (long) chat.lastDate < (long) chats.get(ind).lastDate) {
+            ind += 1;
+        }
+        chats.add(ind, chat);
+        return ind;
     }
 
     @Override

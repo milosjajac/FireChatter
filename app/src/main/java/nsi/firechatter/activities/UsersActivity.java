@@ -14,19 +14,25 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.Map;
+import java.util.Set;
 
 import nsi.firechatter.R;
 import nsi.firechatter.adapters.UsersRecyclerViewAdapter;
+import nsi.firechatter.models.Chat;
 import nsi.firechatter.models.User;
 
 public class UsersActivity extends AppCompatActivity implements UsersRecyclerViewAdapter.OnUsersInteractionListener {
@@ -38,7 +44,9 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
     private List<User> users = new ArrayList<>();
     private UsersRecyclerViewAdapter usersAdapter;
 
+    private DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
     private DatabaseReference usersDbRef = FirebaseDatabase.getInstance().getReference().child("users");
+    private DatabaseReference chatsDbRef = FirebaseDatabase.getInstance().getReference().child("chats");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,10 +122,103 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
     private void onFinish() {
         List<String> selectedUserIds = usersAdapter.getSelectedUserIds();
         if (selectedUserIds.size() > 0) {
-            startActivity(new Intent(UsersActivity.this, ChatActivity.class));
-            finish();
+            initiateChatWithUsers(selectedUserIds);
         } else {
             Toast.makeText(this, getString(R.string.users_activity_none_selected_msg), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void initiateChatWithUsers(final List<String> userIds) {
+        final String loggedUserId = FirebaseAuth.getInstance().getUid();
+        final List<Chat> activeChats = new ArrayList<>();
+
+        usersDbRef.child(loggedUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                User user = dataSnapshot.getValue(User.class);
+                user.id = dataSnapshot.getKey();
+
+                if (user.chats.size() == 0) {
+                    createAndOpenNewChat(userIds);
+                } else {
+                    final int[] counter = { user.chats.size() };
+                    for (String userChatId : user.chats.keySet()) {
+                        chatsDbRef.child(userChatId).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                Chat chat = dataSnapshot.getValue(Chat.class);
+                                chat.id = dataSnapshot.getKey();
+
+                                activeChats.add(chat);
+                                counter[0] -= 1;
+
+                                if (counter[0] == 0) {
+                                    openExistingOrCreateNewChat(userIds, activeChats);
+                                }
+
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void openExistingOrCreateNewChat(List<String> userIds, List<Chat> chats) {
+        List<String> userIdsWithLoggedUser = new ArrayList<>(userIds);
+        userIdsWithLoggedUser.add(FirebaseAuth.getInstance().getUid());
+
+        Set userIdsSet = new HashSet<>(userIdsWithLoggedUser);
+        for (Chat chat : chats) {
+            if (userIdsSet.equals(new HashSet<>(chat.members.keySet()))) {
+                openChatWithId(chat.id);
+                return;
+            }
+        }
+
+        createAndOpenNewChat(userIds);
+    }
+
+    private void openChatWithId(String chatId) {
+        Intent intent = new Intent(UsersActivity.this, ChatActivity.class);
+        intent.putExtra("chatId", chatId);
+        startActivity(intent);
+        finish();
+    }
+
+    private void createAndOpenNewChat(final List<String> userIds) {
+        userIds.add(FirebaseAuth.getInstance().getUid());
+
+        Chat chat = new Chat();
+        chat.lastDate = ServerValue.TIMESTAMP;
+        for (String userId : userIds) {
+            chat.members.put(userId, true);
+        }
+
+        Map<String, Object> updates = new HashMap<>();
+
+        final String newChatKey = chatsDbRef.push().getKey();
+        updates.put("chats/" + newChatKey, chat);
+
+        for (String userId : userIds) {
+            updates.put("users/" + userId + "/chats/" + newChatKey, true);
+        }
+
+        dbRef.updateChildren(updates).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                openChatWithId(newChatKey);
+            }
+        });
     }
 }

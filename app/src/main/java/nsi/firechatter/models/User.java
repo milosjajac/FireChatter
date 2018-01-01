@@ -2,6 +2,9 @@ package nsi.firechatter.models;
 
 import com.google.firebase.database.Exclude;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class User {
 
     @Exclude
@@ -10,6 +13,7 @@ public class User {
     public String email;
     public String name;
     public String avatarUrl;
+    public Map<String, Boolean> chats = new HashMap<>();
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
