@@ -9,12 +9,12 @@ public class Message {
 
 //    public String chatId;
 
-    public String senderId;
-    public String senderName;
-    public String avatarUrl;
-    public Object dateTime;
-    public String content;
-    public String type;
+    private String senderId;
+    private String senderName;
+    private String avatarUrl;
+    private Object dateTime;
+    private String content;
+    private String type;
 
     public Message() {
         // Default constructor required for calls to DataSnapshot.getValue(Message.class)

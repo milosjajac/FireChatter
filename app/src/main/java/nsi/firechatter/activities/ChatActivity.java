@@ -13,6 +13,7 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -24,7 +25,9 @@ import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import nsi.firechatter.R;
 import nsi.firechatter.adapters.MessagesRecyclerViewAdapter;
@@ -186,14 +189,28 @@ public class ChatActivity extends AppCompatActivity {
     private void onSendClick() {
         String message = messageEt.getText().toString().trim();
         if(!message.isEmpty()) {
+            Map<String, Object> updates = new HashMap<>();
+
             String image = currentUser.getPhotoUrl() == null ? null : currentUser.getPhotoUrl().toString();
             Message newMessage = new Message(currentUser.getUid(), currentUser.getDisplayName(),
-                    image,message, "text");
-            String key = messagesDbRef.push().getKey();
-//        newMessage.setId(key);
+                    image, message, "text");
+
+            final String key = messagesDbRef.push().getKey();
+
+            newMessage.setId(key);
             newMessage.setDateTime(ServerValue.TIMESTAMP);
-            messagesDbRef.child(key).setValue(newMessage);
-            messageEt.setText("");
+
+            updates.put("messages/"+chatId+"/"+key, newMessage);
+            updates.put("chats/"+chatId+"/lastMsgDate", newMessage.getDateTime());
+            updates.put("chats/"+chatId+"/lastMsgId", newMessage.getId());
+
+            dbRef.updateChildren(updates).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    messageEt.setText("");
+                }
+            });
+//            messagesDbRef.child(key).setValue(newMessage);
         }
     }
 }
