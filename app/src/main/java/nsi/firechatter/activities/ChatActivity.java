@@ -1,25 +1,33 @@
 package nsi.firechatter.activities;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import nsi.firechatter.R;
-import nsi.firechatter.models.User;
+import nsi.firechatter.adapters.MessagesRecyclerViewAdapter;
+import nsi.firechatter.models.Message;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -28,10 +36,20 @@ public class ChatActivity extends AppCompatActivity {
     private ImageView imageBtn;
     private ImageView sendBtn;
     private EditText messageEt;
+    private ProgressBar messagesProgressBar;
+    private TextView messagesEmptyText;
 
-    private DatabaseReference usersDbRef = FirebaseDatabase.getInstance().getReference().child("users");
-    private DatabaseReference chatsDbRef = FirebaseDatabase.getInstance().getReference().child("chats");
-    private DatabaseReference messagesDbRef = FirebaseDatabase.getInstance().getReference().child("messages");
+    private String chatId;
+
+    private FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    private DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+    private DatabaseReference usersDbRef = dbRef.child("users");
+    private DatabaseReference chatsDbRef = dbRef.child("chats");
+    private DatabaseReference messagesDbRef;
+
+    private List<Message> messages = new ArrayList<>();
+    private RecyclerView messagesRecyclerView;
+    private MessagesRecyclerViewAdapter messagesAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,12 +76,21 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
+        messagesProgressBar = findViewById(R.id.chat_activity_message_progress);
+        messagesEmptyText = findViewById(R.id.chat_activity_message_empty_txt);
+
+        messagesRecyclerView = findViewById(R.id.chat_activity_message_list);
+        messagesAdapter = new MessagesRecyclerViewAdapter(this, messages);
+        messagesRecyclerView.setAdapter(messagesAdapter);
+
+        chatId = getIntent().getStringExtra(EXTRA_CHAT_ID);
+        messagesDbRef = dbRef.child("messages").child(chatId);
+
         getChatAndSetupUI();
     }
 
     private void getChatAndSetupUI() {
         final String loggedUserId = FirebaseAuth.getInstance().getUid();
-        String chatId = getIntent().getStringExtra(EXTRA_CHAT_ID);
 
         chatsDbRef.child(chatId).child("members").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -113,6 +140,43 @@ public class ChatActivity extends AppCompatActivity {
 
             }
         });
+
+        messagesDbRef.child(chatId).orderByChild("dateTime").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                final Message mMessage = dataSnapshot.getValue(Message.class);
+                messages.add(mMessage);
+
+                if (messages.size() == 0) {
+                    messagesProgressBar.setVisibility(View.GONE);
+                    messagesEmptyText.setVisibility(View.VISIBLE);
+                } else {
+                    messagesAdapter.notifyDataSetChanged();
+                    messagesRecyclerView.setVisibility(View.VISIBLE);
+                    messagesProgressBar.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void onImageClick() {
@@ -120,6 +184,12 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void onSendClick() {
-
+        Message newMessage = new Message(currentUser.getUid(), currentUser.getDisplayName(),
+                currentUser.getPhotoUrl().toString(), messageEt.getText().toString(), "text");
+        String key = messagesDbRef.push().getKey();
+//        newMessage.setId(key);
+        newMessage.setDateTime(ServerValue.TIMESTAMP);
+        messagesDbRef.child(key).setValue(newMessage);
+        messageEt.setText("");
     }
 }

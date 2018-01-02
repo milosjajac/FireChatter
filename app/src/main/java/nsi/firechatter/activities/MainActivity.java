@@ -43,8 +43,9 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
     private List<Chat> chats = new ArrayList<>();
     private ChatsRecyclerViewAdapter chatsAdapter;
 
-    private DatabaseReference usersDbRef = FirebaseDatabase.getInstance().getReference().child("users");
-    private DatabaseReference chatsDbRef = FirebaseDatabase.getInstance().getReference().child("chats");
+    private DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+    private DatabaseReference usersDbRef = dbRef.child("users");
+    private DatabaseReference chatsDbRef = dbRef.child("chats");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

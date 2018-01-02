@@ -45,8 +45,8 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
     private UsersRecyclerViewAdapter usersAdapter;
 
     private DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
-    private DatabaseReference usersDbRef = FirebaseDatabase.getInstance().getReference().child("users");
-    private DatabaseReference chatsDbRef = FirebaseDatabase.getInstance().getReference().child("chats");
+    private DatabaseReference usersDbRef = dbRef.child("users");
+    private DatabaseReference chatsDbRef = dbRef.child("chats");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
