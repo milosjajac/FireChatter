@@ -184,13 +184,16 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void onSendClick() {
-        String image = currentUser.getPhotoUrl() == null ? null:currentUser.getPhotoUrl().toString();
-        Message newMessage = new Message(currentUser.getUid(), currentUser.getDisplayName(),
-                image, messageEt.getText().toString(), "text");
-        String key = messagesDbRef.push().getKey();
+        String message = messageEt.getText().toString().trim();
+        if(!message.isEmpty()) {
+            String image = currentUser.getPhotoUrl() == null ? null : currentUser.getPhotoUrl().toString();
+            Message newMessage = new Message(currentUser.getUid(), currentUser.getDisplayName(),
+                    image,message, "text");
+            String key = messagesDbRef.push().getKey();
 //        newMessage.setId(key);
-        newMessage.setDateTime(ServerValue.TIMESTAMP);
-        messagesDbRef.child(key).setValue(newMessage);
-        messageEt.setText("");
+            newMessage.setDateTime(ServerValue.TIMESTAMP);
+            messagesDbRef.child(key).setValue(newMessage);
+            messageEt.setText("");
+        }
     }
 }
