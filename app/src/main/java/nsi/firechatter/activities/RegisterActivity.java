@@ -28,6 +28,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -38,6 +40,7 @@ import java.io.File;
 
 import nsi.firechatter.R;
 import nsi.firechatter.models.User;
+import retrofit2.http.Url;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -186,24 +189,38 @@ public class RegisterActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            final String newUserId = auth.getCurrentUser().getUid();
-                            String avatarFileName = newUserId + ".jpg";
+                            final FirebaseUser user = auth.getCurrentUser();
+                            final String newUserId = user.getUid();
+                            final String avatarFileName = newUserId + ".jpg";
 
                             avatarsStorageRef.child(avatarFileName).putFile(Uri.fromFile(new File(selectedAvatarLocalPath)))
                                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                         @Override
                                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                            String storageAvatarUri = taskSnapshot.getDownloadUrl().toString();
-                                            User newUser = new User(email, name, storageAvatarUri);
+                                            final Uri imageUrl = taskSnapshot.getDownloadUrl();
+                                            User newUser = new User(email, name, imageUrl.toString());
 
                                             usersDbRef.child(newUserId).setValue(newUser)
                                                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                         @Override
                                                         public void onComplete(@NonNull Task<Void> task) {
-                                                            progressDialog.dismiss();
-                                                            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-                                                            startActivity(intent);
-                                                            finish();
+                                                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                                                    .setDisplayName(name)
+                                                                    .setPhotoUri(imageUrl)
+                                                                    .build();
+
+                                                            user.updateProfile(profileUpdates)
+                                                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                        @Override
+                                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                                            if (task.isSuccessful()) {
+                                                                                progressDialog.dismiss();
+                                                                                Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                                                                                startActivity(intent);
+                                                                                finish();
+                                                                            }
+                                                                        }
+                                                                    });
                                                         }
                                                     });
                                         }
