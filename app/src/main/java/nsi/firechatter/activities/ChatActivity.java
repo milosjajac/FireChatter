@@ -195,14 +195,12 @@ public class ChatActivity extends AppCompatActivity {
             Message newMessage = new Message(currentUser.getUid(), currentUser.getDisplayName(),
                     image, message, "text");
 
-            final String key = messagesDbRef.push().getKey();
-
-            newMessage.setId(key);
+            newMessage.setId(messagesDbRef.push().getKey());
             newMessage.setDateTime(ServerValue.TIMESTAMP);
 
-            updates.put("messages/"+chatId+"/"+key, newMessage);
+            updates.put("messages/"+chatId+"/"+newMessage.getId(), newMessage);
             updates.put("chats/"+chatId+"/lastMsgDate", newMessage.getDateTime());
-            updates.put("chats/"+chatId+"/lastMsgId", newMessage.getId());
+            updates.put("chats/"+chatId+"/lastMsg", newMessage.getContent());
 
             dbRef.updateChildren(updates).addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override

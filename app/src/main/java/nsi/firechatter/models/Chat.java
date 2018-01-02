@@ -16,7 +16,7 @@ public class Chat {
     @Exclude
     public String avatarUrl;
 
-    public String lastMsgId;
+    public String lastMsg;
     public Object lastMsgDate;
     public Map<String, Boolean> members = new HashMap<>();
 

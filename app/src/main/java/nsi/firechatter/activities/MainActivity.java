@@ -183,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
         return -1;
     }
 
+    //TODO realtime sort
     private int addChatToCorrectPosition(Chat chat) {
         int ind = 0;
         while (ind < chats.size() && (long) chat.lastMsgDate < (long) chats.get(ind).lastMsgDate) {
