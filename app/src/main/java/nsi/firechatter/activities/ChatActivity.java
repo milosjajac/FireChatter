@@ -141,20 +141,15 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-        messagesDbRef.child(chatId).orderByChild("dateTime").addChildEventListener(new ChildEventListener() {
+        messagesDbRef.orderByChild("dateTime").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 final Message mMessage = dataSnapshot.getValue(Message.class);
                 messages.add(mMessage);
 
-                if (messages.size() == 0) {
-                    messagesProgressBar.setVisibility(View.GONE);
-                    messagesEmptyText.setVisibility(View.VISIBLE);
-                } else {
-                    messagesAdapter.notifyDataSetChanged();
-                    messagesRecyclerView.setVisibility(View.VISIBLE);
-                    messagesProgressBar.setVisibility(View.GONE);
-                }
+                messagesAdapter.notifyDataSetChanged();
+                messagesRecyclerView.setVisibility(View.VISIBLE);
+                messagesProgressBar.setVisibility(View.GONE);
             }
 
             @Override

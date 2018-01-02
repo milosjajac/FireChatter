@@ -10,9 +10,11 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import nsi.firechatter.R;
@@ -95,6 +97,8 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
 
         void bind(Message message) {
             messageText.setText(message.getContent());
+
+// Format the stored timestamp into a readable String using method.
             timeText.setText(df.format(message.getDateTime()));
         }
     }
@@ -114,7 +118,10 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
 
         void bind(Message message) {
             messageText.setText(message.getContent());
+
+            // Format the stored timestamp into a readable String using method.
             timeText.setText(df.format(message.getDateTime()));
+
             nameText.setText(message.getSenderName());
 
             // Insert the profile image from the URL into the ImageView.

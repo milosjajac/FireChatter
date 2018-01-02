@@ -21,16 +21,19 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/users_activity_toolbar"
+        android:layout_below="@id/chat_activity_toolbar"
         android:fillViewport="true">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/chat_activity_message_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_toStartOf="@id/chat_activity_image_btn"
+
             app:layoutManager="LinearLayoutManager"
             android:visibility="gone"/>
             <!--tools:listitem="@layout/"-->
+
     </ScrollView>
 
     <ProgressBar
