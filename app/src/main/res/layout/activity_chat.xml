@@ -19,18 +19,18 @@
         app:titleTextColor="@android:color/white"/>
 
     <ScrollView
+        android:id="@+id/chat_activity_scroll"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingTop="?android:attr/actionBarSize"
         android:layout_above="@id/chat_activity_bottom_bar"
         android:fillViewport="true"
-        android:layout_marginBottom="24dp">
+        android:layout_marginBottom="8dp">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/chat_activity_message_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toStartOf="@id/chat_activity_image_btn"
-
             app:layoutManager="LinearLayoutManager"
             android:visibility="gone"/>
             <!--tools:listitem="@layout/"-->

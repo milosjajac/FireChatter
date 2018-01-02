@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,6 +39,7 @@ public class ChatActivity extends AppCompatActivity {
     private EditText messageEt;
     private ProgressBar messagesProgressBar;
     private TextView messagesEmptyText;
+    private ScrollView scrollView;
 
     private String chatId;
 
@@ -78,6 +80,7 @@ public class ChatActivity extends AppCompatActivity {
 
         messagesProgressBar = findViewById(R.id.chat_activity_message_progress);
         messagesEmptyText = findViewById(R.id.chat_activity_message_empty_txt);
+        scrollView = findViewById(R.id.chat_activity_scroll);
 
         messagesRecyclerView = findViewById(R.id.chat_activity_message_list);
         messagesAdapter = new MessagesRecyclerViewAdapter(this, messages);
@@ -151,6 +154,7 @@ public class ChatActivity extends AppCompatActivity {
                 messagesAdapter.notifyDataSetChanged();
                 messagesRecyclerView.setVisibility(View.VISIBLE);
                 messagesProgressBar.setVisibility(View.GONE);
+//                scrollView.scrollTo(0, scrollView.getHeight());
             }
 
             @Override
