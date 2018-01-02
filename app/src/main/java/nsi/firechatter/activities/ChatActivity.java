@@ -41,7 +41,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private String chatId;
 
-    private FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    private FirebaseUser currentUser;
     private DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
     private DatabaseReference usersDbRef = dbRef.child("users");
     private DatabaseReference chatsDbRef = dbRef.child("chats");
@@ -86,6 +86,7 @@ public class ChatActivity extends AppCompatActivity {
         chatId = getIntent().getStringExtra(EXTRA_CHAT_ID);
         messagesDbRef = dbRef.child("messages").child(chatId);
 
+        currentUser = FirebaseAuth.getInstance().getCurrentUser();
         getChatAndSetupUI();
     }
 
@@ -179,8 +180,9 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void onSendClick() {
+        String image = currentUser.getPhotoUrl() == null ? null:currentUser.getPhotoUrl().toString();
         Message newMessage = new Message(currentUser.getUid(), currentUser.getDisplayName(),
-                currentUser.getPhotoUrl().toString(), messageEt.getText().toString(), "text");
+                image, messageEt.getText().toString(), "text");
         String key = messagesDbRef.push().getKey();
 //        newMessage.setId(key);
         newMessage.setDateTime(ServerValue.TIMESTAMP);

@@ -21,8 +21,9 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/chat_activity_toolbar"
-        android:fillViewport="true">
+        android:layout_above="@id/chat_activity_bottom_bar"
+        android:fillViewport="true"
+        android:layout_marginBottom="24dp">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/chat_activity_message_list"
