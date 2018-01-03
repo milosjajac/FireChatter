@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -27,6 +29,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +46,7 @@ public class ChatActivity extends AppCompatActivity {
     private EditText messageEt;
     private ProgressBar messagesProgressBar;
     private TextView messagesEmptyText;
+    private TextView typingIndicatorText;
 
     private String chatId;
 
@@ -55,6 +59,8 @@ public class ChatActivity extends AppCompatActivity {
     private List<Message> messages = new ArrayList<>();
     private RecyclerView messagesRecyclerView;
     private MessagesRecyclerViewAdapter messagesAdapter;
+    private boolean isTyping;
+    private Map<String, String> usersTyping = new LinkedHashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +73,7 @@ public class ChatActivity extends AppCompatActivity {
         imageBtn = findViewById(R.id.chat_activity_image_btn);
         sendBtn = findViewById(R.id.chat_activity_send_btn);
         messageEt = findViewById(R.id.chat_activity_message_text);
+        typingIndicatorText = findViewById(R.id.chat_activity_typing_indicator);
 
         imageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -87,23 +94,12 @@ public class ChatActivity extends AppCompatActivity {
         messagesRecyclerView = findViewById(R.id.chat_activity_message_list);
         messagesAdapter = new MessagesRecyclerViewAdapter(this, messages);
         messagesRecyclerView.setAdapter(messagesAdapter);
-        messagesRecyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View view, int left, int top, int right, int bottom, int newLeft, int newTop, int newRight, int newBottom) {
-                if (bottom < newBottom) {
-                    messagesRecyclerView.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            messagesRecyclerView.scrollToPosition(
-                                    messagesRecyclerView.getAdapter().getItemCount() - 1);
-                        }
-                    }, 0);
-                }
-            }
-        });
+        messagesRecyclerView.addOnLayoutChangeListener(scrollMesagesOnOpenKeyboard);
 
         chatId = getIntent().getStringExtra(EXTRA_CHAT_ID);
         messagesDbRef = dbRef.child("messages").child(chatId);
+
+        messageEt.addTextChangedListener(typingIndicator);
 
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         getChatAndSetupUI();
@@ -193,6 +189,59 @@ public class ChatActivity extends AppCompatActivity {
 
             }
         });
+
+        chatsDbRef.child(chatId).child("typing").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                if (!dataSnapshot.getKey().equals(currentUser.getUid())) {
+                    usersTyping.put(dataSnapshot.getKey(), (String) dataSnapshot.getValue());
+                    updateTypingIndicatorText();
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.getKey().equals(currentUser.getUid())) {
+                    usersTyping.remove(dataSnapshot.getKey());
+                    updateTypingIndicatorText();
+                }
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void updateTypingIndicatorText() {
+        String text = "";
+
+        for (String userId : usersTyping.keySet()) {
+            if (text.isEmpty()) {
+                text = usersTyping.get(userId);
+            } else {
+                text = text + ", " + usersTyping.get(userId);
+            }
+        }
+
+        if (usersTyping.size() == 1) {
+            text = text + " is typing...";
+        } else if (usersTyping.size() > 1) {
+            text = text + " are typing...";
+        }
+
+        typingIndicatorText.setText(text);
     }
 
     private void onImageClick() {
@@ -222,5 +271,56 @@ public class ChatActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    private View.OnLayoutChangeListener scrollMesagesOnOpenKeyboard = new View.OnLayoutChangeListener() {
+        @Override
+        public void onLayoutChange(View view, int left, int top, int right, int bottom, int newLeft, int newTop, int newRight, int newBottom) {
+            if (bottom < newBottom) {
+                messagesRecyclerView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        messagesRecyclerView.scrollToPosition(
+                                messagesRecyclerView.getAdapter().getItemCount() - 1);
+                    }
+                }, 0);
+            }
+        }
+    };
+
+    private TextWatcher typingIndicator = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            if (charSequence.length() > 0) {
+                if (!isTyping) {
+                    setTypingIndicator();
+                    isTyping = true;
+                }
+            } else {
+                if (isTyping) {
+                    removeTypingIndicator();
+                    isTyping = false;
+                }
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+
+        }
+    };
+
+    private void setTypingIndicator() {
+        chatsDbRef.child(chatId).child("typing").child(currentUser.getUid()).onDisconnect().removeValue();
+        chatsDbRef.child(chatId).child("typing").child(currentUser.getUid()).setValue(currentUser.getDisplayName());
+    }
+
+    private void removeTypingIndicator() {
+        chatsDbRef.child(chatId).child("typing").child(currentUser.getUid()).removeValue();
     }
 }

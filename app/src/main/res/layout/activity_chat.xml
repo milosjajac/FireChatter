@@ -22,9 +22,9 @@
         android:id="@+id/chat_activity_message_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/chat_activity_toolbar"
-        android:layout_above="@id/chat_activity_bottom_separator"
-        android:paddingBottom="8dp"
+        android:layout_below="@+id/chat_activity_toolbar"
+        android:layout_above="@+id/chat_activity_bottom_separator"
+        android:paddingBottom="32dp"
         android:clipToPadding="false"
         app:layoutManager="LinearLayoutManager"/>
         <!--tools:listitem="@layout/"-->
@@ -43,6 +43,16 @@
         android:gravity="center"
         android:visibility="gone"
         android:text="@string/chat_activity_empty_msg" />
+
+    <TextView
+        android:id="@+id/chat_activity_typing_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="4dp"
+        android:layout_above="@+id/chat_activity_bottom_separator"
+        android:textSize="12sp"
+        android:singleLine="true"
+        android:ellipsize="end"/>
 
     <View
         android:id="@+id/chat_activity_bottom_separator"
