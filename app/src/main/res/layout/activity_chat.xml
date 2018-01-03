@@ -18,24 +18,16 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:titleTextColor="@android:color/white"/>
 
-    <ScrollView
-        android:id="@+id/chat_activity_scroll"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/chat_activity_message_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="?android:attr/actionBarSize"
-        android:layout_above="@id/chat_activity_bottom_bar"
-        android:fillViewport="true"
-        android:layout_marginBottom="8dp">
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/chat_activity_message_list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layoutManager="LinearLayoutManager"
-            android:visibility="gone"/>
-            <!--tools:listitem="@layout/"-->
-
-    </ScrollView>
+        android:layout_below="@id/chat_activity_toolbar"
+        android:layout_above="@id/chat_activity_bottom_separator"
+        android:paddingBottom="8dp"
+        android:clipToPadding="false"
+        app:layoutManager="LinearLayoutManager"/>
+        <!--tools:listitem="@layout/"-->
 
     <ProgressBar
         android:id="@+id/chat_activity_message_progress"
@@ -53,10 +45,11 @@
         android:text="@string/chat_activity_empty_msg" />
 
     <View
+        android:id="@+id/chat_activity_bottom_separator"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/colorPrimary"
-        android:layout_above="@+id/chat_activity_bottom_bar"/>
+        android:layout_above="@+id/chat_activity_bottom_bar"
+        android:background="@color/colorPrimary"/>
 
     <RelativeLayout
         android:id="@+id/chat_activity_bottom_bar"

@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -42,7 +43,6 @@ public class ChatActivity extends AppCompatActivity {
     private EditText messageEt;
     private ProgressBar messagesProgressBar;
     private TextView messagesEmptyText;
-    private ScrollView scrollView;
 
     private String chatId;
 
@@ -83,11 +83,24 @@ public class ChatActivity extends AppCompatActivity {
 
         messagesProgressBar = findViewById(R.id.chat_activity_message_progress);
         messagesEmptyText = findViewById(R.id.chat_activity_message_empty_txt);
-        scrollView = findViewById(R.id.chat_activity_scroll);
 
         messagesRecyclerView = findViewById(R.id.chat_activity_message_list);
         messagesAdapter = new MessagesRecyclerViewAdapter(this, messages);
         messagesRecyclerView.setAdapter(messagesAdapter);
+        messagesRecyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View view, int left, int top, int right, int bottom, int newLeft, int newTop, int newRight, int newBottom) {
+                if (bottom < newBottom) {
+                    messagesRecyclerView.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            messagesRecyclerView.scrollToPosition(
+                                    messagesRecyclerView.getAdapter().getItemCount() - 1);
+                        }
+                    }, 0);
+                }
+            }
+        });
 
         chatId = getIntent().getStringExtra(EXTRA_CHAT_ID);
         messagesDbRef = dbRef.child("messages").child(chatId);
@@ -155,9 +168,9 @@ public class ChatActivity extends AppCompatActivity {
                 messages.add(mMessage);
 
                 messagesAdapter.notifyDataSetChanged();
-                messagesRecyclerView.setVisibility(View.VISIBLE);
                 messagesProgressBar.setVisibility(View.GONE);
-//                scrollView.scrollTo(0, scrollView.getHeight());
+
+                messagesRecyclerView.smoothScrollToPosition(messagesRecyclerView.getAdapter().getItemCount() - 1);
             }
 
             @Override
@@ -208,7 +221,6 @@ public class ChatActivity extends AppCompatActivity {
                     messageEt.setText("");
                 }
             });
-//            messagesDbRef.child(key).setValue(newMessage);
         }
     }
 }
