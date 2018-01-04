@@ -145,7 +145,9 @@ public class LoginActivity extends AppCompatActivity {
     private void goToMainIfAuthenticated() {
         boolean loggedIn = auth.getCurrentUser() != null;
         if (loggedIn) {
-            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            intent.putExtras(getIntent());
+            startActivity(intent);
             finish();
         }
     }
