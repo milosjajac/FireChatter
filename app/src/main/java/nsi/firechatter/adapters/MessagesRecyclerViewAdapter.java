@@ -44,7 +44,7 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
     public int getItemViewType(int position) {
         Message message = mMessageList.get(position);
 
-        if (message.getSenderId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+        if (message.senderId.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
             // If the current user is the sender of the message
             return VIEW_TYPE_MESSAGE_SENT;
         } else {
@@ -98,16 +98,16 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
         }
 
         void bind(Message message) {
-            switch (message.getType()) {
+            switch (message.type) {
                 case TEXT:
                     messageImage.setVisibility(View.GONE);
                     messageText.setVisibility(View.VISIBLE);
-                    messageText.setText(message.getContent());
+                    messageText.setText(message.content);
                     break;
                 case IMAGE:
                     messageImage.setVisibility(View.VISIBLE);
                     messageText.setVisibility(View.GONE);
-                    String messageUrl = message.getContent();
+                    String messageUrl = message.content;
                     if ( messageUrl!= null && !messageUrl.isEmpty()) {
                     Glide.with(mContext)
                             .load(messageUrl)
@@ -117,7 +117,7 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
             }
 
             // Format the stored timestamp into a readable String using method.
-            timeText.setText(df.format(message.getDateTime()));
+            timeText.setText(df.format(message.dateTime));
         }
     }
 
@@ -136,16 +136,16 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
         }
 
         void bind(Message message) {
-            switch (message.getType()) {
+            switch (message.type) {
                 case TEXT:
                     messageImage.setVisibility(View.GONE);
                     messageText.setVisibility(View.VISIBLE);
-                    messageText.setText(message.getContent());
+                    messageText.setText(message.content);
                     break;
                 case IMAGE:
                     messageImage.setVisibility(View.VISIBLE);
                     messageText.setVisibility(View.GONE);
-                    String messageUrl = message.getContent();
+                    String messageUrl = message.content;
                     if ( messageUrl!= null && !messageUrl.isEmpty()) {
                         Glide.with(mContext)
                                 .load(messageUrl)
@@ -155,7 +155,7 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
             }
 
             // Format the stored timestamp into a readable String using method.
-            timeText.setText(df.format(message.getDateTime()));
+            timeText.setText(df.format(message.dateTime));
             //TODO set avatar & name
 //            nameText.setText(message.getSenderName());
 //

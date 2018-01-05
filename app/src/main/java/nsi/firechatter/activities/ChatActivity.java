@@ -299,11 +299,11 @@ public class ChatActivity extends AppCompatActivity {
                 messagesProgressBar.setVisibility(View.VISIBLE);
 
                 final Message newMessage = new Message(currentUser.getUid(), "", MessageTypeEnum.IMAGE);
-                newMessage.setId(messagesDbRef.push().getKey());
-                newMessage.setDateTime(ServerValue.TIMESTAMP);
+                newMessage.id = messagesDbRef.push().getKey();
+                newMessage.dateTime = ServerValue.TIMESTAMP;
 
                 StorageReference imagesStorageRef = FirebaseStorage.getInstance().getReference().child("images").child(chatId);
-                String imageFileName = newMessage.getDateTime() + ".jpg";
+                String imageFileName = newMessage.dateTime + ".jpg";
                 selectedImageLocalPath = getRealPathFromURI(data.getData());
 
                 imagesStorageRef.child(imageFileName).putFile(Uri.fromFile(new File(selectedImageLocalPath)))
@@ -313,12 +313,12 @@ public class ChatActivity extends AppCompatActivity {
                                 messagesProgressBar.setVisibility(View.GONE);
 
                                 final Uri imageUrl = taskSnapshot.getDownloadUrl();
-                                newMessage.setContent(imageUrl.toString());
+                                newMessage.content = imageUrl.toString();
 
                                 Map<String, Object> updates = new HashMap<>();
 
-                                updates.put("messages/"+chatId+"/"+newMessage.getId(), newMessage);
-                                updates.put("chats/"+chatId+"/lastMsgDate", newMessage.getDateTime());
+                                updates.put("messages/"+chatId+"/"+newMessage.id, newMessage);
+                                updates.put("chats/"+chatId+"/lastMsgDate", newMessage.dateTime);
                                 updates.put("chats/"+chatId+"/lastMsg", "Sent photo.");
 
                                 dbRef.updateChildren(updates).addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -360,12 +360,12 @@ public class ChatActivity extends AppCompatActivity {
 
             Message newMessage = new Message(currentUser.getUid(), message, MessageTypeEnum.TEXT);
 
-            newMessage.setId(messagesDbRef.push().getKey());
-            newMessage.setDateTime(ServerValue.TIMESTAMP);
+            newMessage.id = messagesDbRef.push().getKey();
+            newMessage.dateTime = ServerValue.TIMESTAMP;
 
-            updates.put("messages/"+chatId+"/"+newMessage.getId(), newMessage);
-            updates.put("chats/"+chatId+"/lastMsgDate", newMessage.getDateTime());
-            updates.put("chats/"+chatId+"/lastMsg", newMessage.getContent());
+            updates.put("messages/"+chatId+"/"+newMessage.id, newMessage);
+            updates.put("chats/"+chatId+"/lastMsgDate", newMessage.dateTime);
+            updates.put("chats/"+chatId+"/lastMsg", newMessage.content);
 
             dbRef.updateChildren(updates).addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
