@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -111,6 +112,8 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
                     if ( messageUrl!= null && !messageUrl.isEmpty()) {
                     Glide.with(mContext)
                             .load(messageUrl)
+                            .apply(new RequestOptions()
+                                    .fitCenter())
                             .into(messageImage);
                     }
                     break;
@@ -149,6 +152,8 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
                     if ( messageUrl!= null && !messageUrl.isEmpty()) {
                         Glide.with(mContext)
                                 .load(messageUrl)
+                                .apply(new RequestOptions()
+                                        .fitCenter())
                                 .into(messageImage);
                     }
                     break;
