@@ -11,13 +11,11 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import nsi.firechatter.R;
 import nsi.firechatter.activities.ChatActivity;
@@ -28,25 +26,30 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
     private static final int VIEW_TYPE_MESSAGE_SENT = 1;
     private static final int VIEW_TYPE_MESSAGE_RECEIVED = 2;
 
-    private Context mContext;
-    private List<Message> mMessageList;
+    private Context context;
+    private List<Message> messages;
+    private Map<String, User> members;
 
     private DateFormat df = new SimpleDateFormat("dd. MMM ''yy HH:mm");
 
     public MessagesRecyclerViewAdapter(Context context, List<Message> messageList) {
-        mContext = context;
-        mMessageList = messageList;
+        this.context = context;
+        messages = messageList;
+    }
+
+    public void setMembers(Map<String, User> members) {
+        this.members = members;
     }
 
     @Override
     public int getItemCount() {
-        return mMessageList.size();
+        return messages.size();
     }
 
     // Determines the appropriate ViewType according to the sender of the message.
     @Override
     public int getItemViewType(int position) {
-        Message message = mMessageList.get(position);
+        Message message = messages.get(position);
 
         if (message.senderId.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
             // If the current user is the sender of the message
@@ -78,14 +81,14 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
     // Passes the message object to a ViewHolder so that the contents can be bound to UI.
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        Message message = mMessageList.get(position);
+        Message message = messages.get(position);
 
         switch (holder.getItemViewType()) {
             case VIEW_TYPE_MESSAGE_SENT:
                 ((SentMessageHolder) holder).bind(message);
                 break;
             case VIEW_TYPE_MESSAGE_RECEIVED:
-                User sender = ChatActivity.members.get(message.senderId);
+                User sender = members.get(message.senderId);
                 ((ReceivedMessageHolder) holder).bind(message, sender);
         }
     }
@@ -114,7 +117,7 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
                     messageText.setVisibility(View.GONE);
                     String messageUrl = message.content;
                     if ( messageUrl!= null && !messageUrl.isEmpty()) {
-                    Glide.with(mContext)
+                    Glide.with(context)
                             .load(messageUrl)
                             .apply(new RequestOptions()
                                     .fitCenter())
@@ -154,7 +157,7 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
                     messageText.setVisibility(View.GONE);
                     String messageUrl = message.content;
                     if ( messageUrl!= null && !messageUrl.isEmpty()) {
-                        Glide.with(mContext)
+                        Glide.with(context)
                                 .load(messageUrl)
                                 .apply(new RequestOptions()
                                         .fitCenter())
@@ -170,7 +173,7 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
             // Insert the profile image from the URL into the ImageView.
             String avatarUrl = sender.avatarUrl;
             if ( avatarUrl!= null && !avatarUrl.isEmpty()) {
-                Glide.with(mContext)
+                Glide.with(context)
                         .load(avatarUrl)
                         .into(profileImage);
             }

@@ -85,7 +85,7 @@ public class ChatActivity extends AppCompatActivity {
     private MessagesRecyclerViewAdapter messagesAdapter;
     private boolean isTyping;
     private Map<String, String> usersTyping = new LinkedHashMap<>();
-    public static HashMap<String, User> members = new HashMap<>();
+    private HashMap<String, User> members = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -214,6 +214,8 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void startTrackingMessages() {
+        messagesAdapter.setMembers(members);
+
         messagesDbRef.orderByChild("dateTime").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
