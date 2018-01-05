@@ -120,6 +120,7 @@ public class ChatActivity extends AppCompatActivity {
         messagesAdapter = new MessagesRecyclerViewAdapter(this, messages);
         messagesRecyclerView.setAdapter(messagesAdapter);
         messagesRecyclerView.addOnLayoutChangeListener(scrollMesagesOnOpenKeyboard);
+        messagesRecyclerView.addOnChildAttachStateChangeListener(newMessageAttachedListener);
 
         chatId = getIntent().getStringExtra(EXTRA_CHAT_ID);
         messagesDbRef = dbRef.child("messages").child(chatId);
@@ -224,8 +225,6 @@ public class ChatActivity extends AppCompatActivity {
 
                 messagesAdapter.notifyDataSetChanged();
                 messagesProgressBar.setVisibility(View.GONE);
-
-                messagesRecyclerView.smoothScrollToPosition(messagesRecyclerView.getAdapter().getItemCount() - 1);
             }
 
             @Override
@@ -400,6 +399,18 @@ public class ChatActivity extends AppCompatActivity {
                     }
                 }, 0);
             }
+        }
+    };
+
+    private RecyclerView.OnChildAttachStateChangeListener newMessageAttachedListener = new RecyclerView.OnChildAttachStateChangeListener() {
+        @Override
+        public void onChildViewAttachedToWindow(View view) {
+            messagesRecyclerView.smoothScrollToPosition(messagesRecyclerView.getAdapter().getItemCount() - 1);
+        }
+
+        @Override
+        public void onChildViewDetachedFromWindow(View view) {
+            messagesRecyclerView.smoothScrollToPosition(messagesRecyclerView.getAdapter().getItemCount() - 1);
         }
     };
 
