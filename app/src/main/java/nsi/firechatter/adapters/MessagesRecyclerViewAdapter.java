@@ -129,7 +129,7 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
             super(itemView);
 
             messageText = (TextView) itemView.findViewById(R.id.sender_message_text_body);
-            messageImage = (ImageView) itemView.findViewById(R.id.my_message_image_body);
+            messageImage = (ImageView) itemView.findViewById(R.id.sender_message_image_body);
             timeText = (TextView) itemView.findViewById(R.id.sender_message_time);
             nameText = (TextView) itemView.findViewById(R.id.sender_message_name);
             profileImage = (ImageView) itemView.findViewById(R.id.sender_message_avatar);
