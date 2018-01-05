@@ -17,6 +17,7 @@ import java.util.Map;
 
 import nsi.firechatter.R;
 import nsi.firechatter.activities.ChatActivity;
+import nsi.firechatter.models.MessageTypeEnum;
 
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
@@ -28,27 +29,27 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String chatName = data.get("chatName");
         String senderName = data.get("senderName");
         String content = data.get("content");
-        String type = data.get("type");
+        MessageTypeEnum type = MessageTypeEnum.valueOf(data.get("type"));
         String iconUrl = data.get("iconUrl");
         Bitmap image;
 
-        String notificationContent;
+        String notificationContent = "";
 
         if (!chatName.isEmpty()) {
-            if (type.equals("text")) {
+            if (type == MessageTypeEnum.TEXT) {
                 notificationContent = senderName + ": " + content;
-            } else {
+            } else if (type == MessageTypeEnum.IMAGE) {
                 notificationContent = senderName + " sent a photo.";
             }
         } else {
-            if (type.equals("text")) {
+            if (type == MessageTypeEnum.TEXT) {
                 notificationContent = content;
-            } else {
+            } else if (type == MessageTypeEnum.IMAGE) {
                 notificationContent = "Sent a photo.";
             }
         }
 
-        if (!iconUrl.isEmpty()) {
+        if (chatName.isEmpty() && !iconUrl.isEmpty()) {
             try {
                 URL url = new URL(iconUrl);
                 image = BitmapFactory.decodeStream(url.openStream());

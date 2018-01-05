@@ -144,7 +144,11 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             String chatName = chatNameEt.getText().toString().trim();
-                            initiateChatWithName(chatName);
+                            if (!chatName.isEmpty()) {
+                                initiateChatWithName(chatName);
+                            } else {
+                                Toast.makeText(UsersActivity.this, "Chat name required.", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     })
                     .setNegativeButton("Cancel", null)
