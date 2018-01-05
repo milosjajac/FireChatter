@@ -91,6 +91,7 @@ public class ChatActivity extends AppCompatActivity {
     private boolean isTyping;
     private Map<String, String> usersTyping = new LinkedHashMap<>();
     private HashMap<String, User> members = new HashMap<>();
+    private int lastScrolledToPosition = 0;
 
     private BroadcastReceiver newMessageNotificationReceiver = new BroadcastReceiver() {
         @Override
@@ -434,12 +435,15 @@ public class ChatActivity extends AppCompatActivity {
     private RecyclerView.OnChildAttachStateChangeListener newMessageAttachedListener = new RecyclerView.OnChildAttachStateChangeListener() {
         @Override
         public void onChildViewAttachedToWindow(View view) {
-            messagesRecyclerView.smoothScrollToPosition(messagesRecyclerView.getAdapter().getItemCount() - 1);
+            if (messagesRecyclerView.getAdapter().getItemCount() > lastScrolledToPosition + 1) {
+                messagesRecyclerView.smoothScrollToPosition(messagesRecyclerView.getAdapter().getItemCount() - 1);
+                lastScrolledToPosition = messagesRecyclerView.getAdapter().getItemCount() - 1;
+            }
         }
 
         @Override
         public void onChildViewDetachedFromWindow(View view) {
-            messagesRecyclerView.smoothScrollToPosition(messagesRecyclerView.getAdapter().getItemCount() - 1);
+
         }
     };
 
