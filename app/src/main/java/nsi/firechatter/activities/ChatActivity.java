@@ -303,7 +303,7 @@ public class ChatActivity extends AppCompatActivity {
                 newMessage.dateTime = ServerValue.TIMESTAMP;
 
                 StorageReference imagesStorageRef = FirebaseStorage.getInstance().getReference().child("images").child(chatId);
-                String imageFileName = newMessage.getId() + ".jpg";
+                String imageFileName = newMessage.id + ".jpg";
                 selectedImageLocalPath = getRealPathFromURI(data.getData());
 
                 imagesStorageRef.child(imageFileName).putFile(Uri.fromFile(new File(selectedImageLocalPath)))
