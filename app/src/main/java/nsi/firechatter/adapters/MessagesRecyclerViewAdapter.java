@@ -16,10 +16,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import nsi.firechatter.R;
+import nsi.firechatter.activities.ChatActivity;
 import nsi.firechatter.models.Message;
+import nsi.firechatter.models.User;
 
 public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
     private static final int VIEW_TYPE_MESSAGE_SENT = 1;
@@ -82,7 +85,8 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
                 ((SentMessageHolder) holder).bind(message);
                 break;
             case VIEW_TYPE_MESSAGE_RECEIVED:
-                ((ReceivedMessageHolder) holder).bind(message);
+                User sender = ChatActivity.members.get(message.senderId);
+                ((ReceivedMessageHolder) holder).bind(message, sender);
         }
     }
 
@@ -138,7 +142,7 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
             profileImage = (ImageView) itemView.findViewById(R.id.sender_message_avatar);
         }
 
-        void bind(Message message) {
+        void bind(Message message, User sender) {
             switch (message.type) {
                 case TEXT:
                     messageImage.setVisibility(View.GONE);
@@ -161,16 +165,15 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
 
             // Format the stored timestamp into a readable String using method.
             timeText.setText(df.format(message.dateTime));
-            //TODO set avatar & name
-//            nameText.setText(message.getSenderName());
-//
-//            // Insert the profile image from the URL into the ImageView.
-//            String avatarUrl = message.getAvatarUrl();
-//            if ( avatarUrl!= null && !avatarUrl.isEmpty()) {
-//                Glide.with(mContext)
-//                        .load(avatarUrl)
-//                        .into(profileImage);
-//            }
+            nameText.setText(sender.name);
+
+            // Insert the profile image from the URL into the ImageView.
+            String avatarUrl = sender.avatarUrl;
+            if ( avatarUrl!= null && !avatarUrl.isEmpty()) {
+                Glide.with(mContext)
+                        .load(avatarUrl)
+                        .into(profileImage);
+            }
         }
     }
 }

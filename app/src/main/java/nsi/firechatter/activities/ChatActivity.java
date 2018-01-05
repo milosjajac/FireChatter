@@ -76,7 +76,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private FirebaseUser currentUser;
     private DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
-    private DatabaseReference usersDbRef = dbRef.child("users");
+    private final DatabaseReference usersDbRef = dbRef.child("users");
     private DatabaseReference chatsDbRef = dbRef.child("chats");
     private DatabaseReference messagesDbRef;
 
@@ -85,6 +85,7 @@ public class ChatActivity extends AppCompatActivity {
     private MessagesRecyclerViewAdapter messagesAdapter;
     private boolean isTyping;
     private Map<String, String> usersTyping = new LinkedHashMap<>();
+    public static HashMap<String, User> members = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,10 +127,12 @@ public class ChatActivity extends AppCompatActivity {
         messageEt.addTextChangedListener(typingIndicator);
 
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
         getChatAndSetupUI();
     }
 
     private void getChatAndSetupUI() {
+
         final String loggedUserId = FirebaseAuth.getInstance().getUid();
 
         chatsDbRef.child(chatId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -140,27 +143,43 @@ public class ChatActivity extends AppCompatActivity {
                 if (chat.name != null && !chat.name.isEmpty()) {
                     setTitle(chat.name);
                 } else {
-                    String otherMemberId = "";
-                    for (String memberId : chat.members.keySet()) {
-                        if (!memberId.equals(loggedUserId)) {
-                            otherMemberId = memberId;
+                    final List<String> otherMemberNames = new ArrayList<>();
+                    final int counter[] = {chat.members.size()-1};
+
+                    for (final String memberId : chat.members.keySet()) {
+                        if (memberId.equals(loggedUserId)) {
+                            continue;
                         }
+
+                        usersDbRef.child(memberId).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot1) {
+                                User member = dataSnapshot1.getValue(User.class);
+                                members.put(memberId, member);
+                                otherMemberNames.add(member.name);
+                                counter[0] -= 1;
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
                     }
 
-                    usersDbRef.child(otherMemberId).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            String otherMemberName = (String) dataSnapshot.getValue();
-                            if (otherMemberName != null) {
-                                setTitle(otherMemberName);
+                    if (counter[0] == 0) {
+                        String chatName = otherMemberNames.get(0);
+                        for (int i = 1; i < otherMemberNames.size(); i++) {
+                            String nextName = otherMemberNames.get(i);
+
+                            if (nextName.charAt(0) > chatName.charAt(0)) {
+                                chatName = chatName + ", " + nextName;
+                            } else {
+                                chatName = nextName + ", " + chatName;
                             }
                         }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
+                        setTitle(chatName);
+                    }
                 }
             }
 
@@ -351,7 +370,6 @@ public class ChatActivity extends AppCompatActivity {
             }
         }
     }
-
 
     private void onSendClick() {
         String message = messageEt.getText().toString().trim();
