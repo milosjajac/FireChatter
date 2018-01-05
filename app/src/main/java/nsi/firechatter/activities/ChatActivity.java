@@ -142,9 +142,6 @@ public class ChatActivity extends AppCompatActivity {
 
                 if (chat.name != null && !chat.name.isEmpty()) {
                     setTitle(chat.name);
-                } else {
-                    final List<String> otherMemberNames = new ArrayList<>();
-                    final int counter[] = {chat.members.size()-1};
 
                     for (final String memberId : chat.members.keySet()) {
                         if (memberId.equals(loggedUserId)) {
@@ -156,8 +153,6 @@ public class ChatActivity extends AppCompatActivity {
                             public void onDataChange(DataSnapshot dataSnapshot1) {
                                 User member = dataSnapshot1.getValue(User.class);
                                 members.put(memberId, member);
-                                otherMemberNames.add(member.name);
-                                counter[0] -= 1;
                             }
 
                             @Override
@@ -167,19 +162,30 @@ public class ChatActivity extends AppCompatActivity {
                         });
                     }
 
-                    if (counter[0] == 0) {
-                        String chatName = otherMemberNames.get(0);
-                        for (int i = 1; i < otherMemberNames.size(); i++) {
-                            String nextName = otherMemberNames.get(i);
+                } else {
+                    String otherMemberId = "";
+                    for (String memberId : chat.members.keySet()) {
+                        if (!memberId.equals(loggedUserId)) {
+                            otherMemberId = memberId;
+                        }
+                    }
 
-                            if (nextName.charAt(0) > chatName.charAt(0)) {
-                                chatName = chatName + ", " + nextName;
-                            } else {
-                                chatName = nextName + ", " + chatName;
+                    final String finalOtherMemberId = otherMemberId;
+                    usersDbRef.child(otherMemberId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot1) {
+                            User member = dataSnapshot1.getValue(User.class);
+                            members.put(finalOtherMemberId, member);
+                            if (member.name != null) {
+                                setTitle(member.name);
                             }
                         }
-                        setTitle(chatName);
-                    }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
                 }
             }
 
