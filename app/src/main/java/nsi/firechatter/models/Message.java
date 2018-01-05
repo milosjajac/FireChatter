@@ -5,25 +5,18 @@ import com.google.firebase.database.Exclude;
 public class Message {
 
     @Exclude
-    public String id;
-
-//    public String chatId;
-
+    private String id;
     private String senderId;
-    private String senderName;
-    private String avatarUrl;
     private Object dateTime;
     private String content;
-    private String type;
+    private MessageTypeEnum type;
 
     public Message() {
         // Default constructor required for calls to DataSnapshot.getValue(Message.class)
     }
 
-    public Message(String senderId, String senderName, String avatarUrl, String content, String type) {
+    public Message(String senderId, String content, MessageTypeEnum type) {
         this.senderId = senderId;
-        this.senderName = senderName;
-        this.avatarUrl = avatarUrl;
         this.content = content;
         this.type = type;
     }
@@ -40,14 +33,6 @@ public class Message {
         this.senderId = senderId;
     }
 
-    public void setSenderName(String senderName) {
-        this.senderName = senderName;
-    }
-
-    public void setAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
-    }
-
     public void setDateTime(Object dateTime) {
         this.dateTime = dateTime;
     }
@@ -56,16 +41,12 @@ public class Message {
         this.content = content;
     }
 
-    public String getType() {
+    public MessageTypeEnum getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(MessageTypeEnum type) {
         this.type = type;
-    }
-
-    public String getSenderName() {
-        return senderName;
     }
 
     public Object getDateTime() {
@@ -78,9 +59,5 @@ public class Message {
 
     public String getSenderId() {
         return senderId;
-    }
-
-    public String getAvatarUrl() {
-        return avatarUrl;
     }
 }

@@ -1,7 +1,16 @@
 package nsi.firechatter.activities;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,9 +25,13 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -26,7 +39,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -36,10 +53,14 @@ import java.util.Map;
 import nsi.firechatter.R;
 import nsi.firechatter.adapters.MessagesRecyclerViewAdapter;
 import nsi.firechatter.models.Message;
+import nsi.firechatter.models.MessageTypeEnum;
+import nsi.firechatter.models.User;
 
 public class ChatActivity extends AppCompatActivity {
 
     public static final String EXTRA_CHAT_ID = "chatId";
+    private static final int RC_STORAGE_PERMISSION = 1;
+    private static final int RC_CHOOSE_IMAGE = 2;
 
     private ImageView imageBtn;
     private ImageView sendBtn;
@@ -49,6 +70,8 @@ public class ChatActivity extends AppCompatActivity {
     private TextView typingIndicatorText;
 
     private String chatId;
+    private String selectedImageLocalPath;
+
 
     private FirebaseUser currentUser;
     private DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
@@ -245,17 +268,101 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void onImageClick() {
-
+        checkReadStoragePermission();
     }
+
+    private void checkReadStoragePermission() {
+        final String storagePermission = Manifest.permission.READ_EXTERNAL_STORAGE;
+        int userPermission = ContextCompat.checkSelfPermission(ChatActivity.this, storagePermission);
+        boolean permissionGranted = userPermission == PackageManager.PERMISSION_GRANTED;
+
+        if (!permissionGranted) {
+            ActivityCompat.requestPermissions(ChatActivity.this, new String[]{storagePermission},
+                    RC_STORAGE_PERMISSION);
+        } else {
+            onStoragePermissionGranted();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == RC_STORAGE_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                onStoragePermissionGranted();
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    private void onStoragePermissionGranted() {
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK);
+        galleryIntent.setType("image/*");
+
+        startActivityForResult(galleryIntent, RC_CHOOSE_IMAGE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_CHOOSE_IMAGE && resultCode == Activity.RESULT_OK) {
+            if (data != null && data.getData() != null) {
+                Map<String, Object> updates = new HashMap<>();
+
+                final Message newMessage = new Message(currentUser.getUid(), "", MessageTypeEnum.IMAGE);
+                newMessage.setId(messagesDbRef.push().getKey());
+                newMessage.setDateTime(ServerValue.TIMESTAMP);
+
+                StorageReference imagesStorageRef = FirebaseStorage.getInstance().getReference().child("images").child(chatId);
+                String imageFileName = newMessage.getDateTime() + ".jpg";
+                selectedImageLocalPath = getRealPathFromURI(data.getData());
+
+                imagesStorageRef.child(imageFileName).putFile(Uri.fromFile(new File(selectedImageLocalPath)))
+                        .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                final Uri imageUrl = taskSnapshot.getDownloadUrl();
+                                newMessage.setContent(imageUrl.toString());
+                            }
+                        });
+
+                updates.put("messages/"+chatId+"/"+newMessage.getId(), newMessage);
+                updates.put("chats/"+chatId+"/lastMsgDate", newMessage.getDateTime());
+                updates.put("chats/"+chatId+"/lastMsg", "Sent photo.");
+
+                dbRef.updateChildren(updates).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        messageEt.setText("");
+                    }
+                });
+            }
+
+
+        }
+    }
+
+    private String getRealPathFromURI(Uri contentUri) {
+        Cursor cursor = null;
+        try {
+            String[] proj = { MediaStore.Images.Media.DATA };
+            cursor = this.getContentResolver().query(contentUri,  proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
 
     private void onSendClick() {
         String message = messageEt.getText().toString().trim();
         if(!message.isEmpty()) {
             Map<String, Object> updates = new HashMap<>();
 
-            String image = currentUser.getPhotoUrl() == null ? null : currentUser.getPhotoUrl().toString();
-            Message newMessage = new Message(currentUser.getUid(), currentUser.getDisplayName(),
-                    image, message, "text");
+            Message newMessage = new Message(currentUser.getUid(), message, MessageTypeEnum.TEXT);
 
             newMessage.setId(messagesDbRef.push().getKey());
             newMessage.setDateTime(ServerValue.TIMESTAMP);
