@@ -87,50 +87,85 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
 
     private class SentMessageHolder extends RecyclerView.ViewHolder {
         TextView messageText, timeText;
+        ImageView messageImage;
 
         SentMessageHolder(View itemView) {
             super(itemView);
 
-            messageText = (TextView) itemView.findViewById(R.id.my_message_body);
+            messageText = (TextView) itemView.findViewById(R.id.my_message_text_body);
+            messageImage = (ImageView) itemView.findViewById(R.id.my_message_image_body);
             timeText = (TextView) itemView.findViewById(R.id.my_message_time);
         }
 
         void bind(Message message) {
-            messageText.setText(message.getContent());
+            switch (message.getType()) {
+                case TEXT:
+                    messageImage.setVisibility(View.GONE);
+                    messageText.setVisibility(View.VISIBLE);
+                    messageText.setText(message.getContent());
+                    break;
+                case IMAGE:
+                    messageImage.setVisibility(View.VISIBLE);
+                    messageText.setVisibility(View.GONE);
+                    String messageUrl = message.getContent();
+                    if ( messageUrl!= null && !messageUrl.isEmpty()) {
+                    Glide.with(mContext)
+                            .load(messageUrl)
+                            .into(messageImage);
+                    }
+                    break;
+            }
 
-// Format the stored timestamp into a readable String using method.
+            // Format the stored timestamp into a readable String using method.
             timeText.setText(df.format(message.getDateTime()));
         }
     }
 
     private class ReceivedMessageHolder extends RecyclerView.ViewHolder {
         TextView messageText, timeText, nameText;
-        ImageView profileImage;
+        ImageView profileImage, messageImage;
 
         ReceivedMessageHolder(View itemView) {
             super(itemView);
 
-            messageText = (TextView) itemView.findViewById(R.id.sender_message_body);
+            messageText = (TextView) itemView.findViewById(R.id.sender_message_text_body);
+            messageImage = (ImageView) itemView.findViewById(R.id.my_message_image_body);
             timeText = (TextView) itemView.findViewById(R.id.sender_message_time);
             nameText = (TextView) itemView.findViewById(R.id.sender_message_name);
             profileImage = (ImageView) itemView.findViewById(R.id.sender_message_avatar);
         }
 
         void bind(Message message) {
-            messageText.setText(message.getContent());
+            switch (message.getType()) {
+                case TEXT:
+                    messageImage.setVisibility(View.GONE);
+                    messageText.setVisibility(View.VISIBLE);
+                    messageText.setText(message.getContent());
+                    break;
+                case IMAGE:
+                    messageImage.setVisibility(View.VISIBLE);
+                    messageText.setVisibility(View.GONE);
+                    String messageUrl = message.getContent();
+                    if ( messageUrl!= null && !messageUrl.isEmpty()) {
+                        Glide.with(mContext)
+                                .load(messageUrl)
+                                .into(messageImage);
+                    }
+                    break;
+            }
 
             // Format the stored timestamp into a readable String using method.
             timeText.setText(df.format(message.getDateTime()));
-
-            nameText.setText(message.getSenderName());
-
-            // Insert the profile image from the URL into the ImageView.
-            String avatarUrl = message.getAvatarUrl();
-            if ( avatarUrl!= null && !avatarUrl.isEmpty()) {
-                Glide.with(mContext)
-                        .load(avatarUrl)
-                        .into(profileImage);
-            }
+            //TODO set avatar & name
+//            nameText.setText(message.getSenderName());
+//
+//            // Insert the profile image from the URL into the ImageView.
+//            String avatarUrl = message.getAvatarUrl();
+//            if ( avatarUrl!= null && !avatarUrl.isEmpty()) {
+//                Glide.with(mContext)
+//                        .load(avatarUrl)
+//                        .into(profileImage);
+//            }
         }
     }
 }
