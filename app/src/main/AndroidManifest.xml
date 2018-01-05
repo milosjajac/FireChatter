@@ -66,6 +66,11 @@
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
             </intent-filter>
         </service>
+        <receiver android:name=".receivers.NotificationBroadcastReceiver">
+            <intent-filter>
+                <action android:name="dofijghdoflkghdflk"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

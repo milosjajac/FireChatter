@@ -2,7 +2,11 @@ package nsi.firechatter.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -11,6 +15,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -87,6 +92,16 @@ public class ChatActivity extends AppCompatActivity {
     private Map<String, String> usersTyping = new LinkedHashMap<>();
     private HashMap<String, User> members = new HashMap<>();
 
+    private BroadcastReceiver newMessageNotificationReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            HashMap<String, String> data = (HashMap<String, String>) intent.getSerializableExtra("data");
+            if (data.get("chatId").equals(chatId)) {
+                abortBroadcast();
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,6 +145,20 @@ public class ChatActivity extends AppCompatActivity {
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
         getChatAndSetupUI();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter intentFilter = new IntentFilter("dofijghdoflkghdflk");
+        intentFilter.setPriority(100);
+        registerReceiver(newMessageNotificationReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(newMessageNotificationReceiver);
     }
 
     private void getChatAndSetupUI() {
