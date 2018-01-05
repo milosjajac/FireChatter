@@ -132,7 +132,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void getChatAndSetupUI() {
-
         final String loggedUserId = FirebaseAuth.getInstance().getUid();
 
         chatsDbRef.child(chatId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -142,42 +141,27 @@ public class ChatActivity extends AppCompatActivity {
 
                 if (chat.name != null && !chat.name.isEmpty()) {
                     setTitle(chat.name);
+                }
 
-                    for (final String memberId : chat.members.keySet()) {
-                        if (memberId.equals(loggedUserId)) {
-                            continue;
-                        }
-
-                        usersDbRef.child(memberId).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot1) {
-                                User member = dataSnapshot1.getValue(User.class);
-                                members.put(memberId, member);
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
+                final int[] counter = {chat.members.size() - 1};
+                for (final String memberId : chat.members.keySet()) {
+                    if (memberId.equals(loggedUserId)) {
+                        continue;
                     }
 
-                } else {
-                    String otherMemberId = "";
-                    for (String memberId : chat.members.keySet()) {
-                        if (!memberId.equals(loggedUserId)) {
-                            otherMemberId = memberId;
-                        }
-                    }
-
-                    final String finalOtherMemberId = otherMemberId;
-                    usersDbRef.child(otherMemberId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    usersDbRef.child(memberId).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot1) {
                             User member = dataSnapshot1.getValue(User.class);
-                            members.put(finalOtherMemberId, member);
-                            if (member.name != null) {
-                                setTitle(member.name);
+                            members.put(memberId, member);
+
+                            counter[0] -= 1;
+                            if (counter[0] == 0) {
+                                if (members.size() == 1) {
+                                    setTitle(members.entrySet().iterator().next().getValue().name);
+                                }
+
+                                startTrackingMessages();
                             }
                         }
 
@@ -187,39 +171,6 @@ public class ChatActivity extends AppCompatActivity {
                         }
                     });
                 }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        messagesDbRef.orderByChild("dateTime").addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                final Message mMessage = dataSnapshot.getValue(Message.class);
-                messages.add(mMessage);
-
-                messagesAdapter.notifyDataSetChanged();
-                messagesProgressBar.setVisibility(View.GONE);
-
-                messagesRecyclerView.smoothScrollToPosition(messagesRecyclerView.getAdapter().getItemCount() - 1);
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
             }
 
             @Override
@@ -248,6 +199,41 @@ public class ChatActivity extends AppCompatActivity {
                     usersTyping.remove(dataSnapshot.getKey());
                     updateTypingIndicatorText();
                 }
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void startTrackingMessages() {
+        messagesDbRef.orderByChild("dateTime").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                final Message mMessage = dataSnapshot.getValue(Message.class);
+                messages.add(mMessage);
+
+                messagesAdapter.notifyDataSetChanged();
+                messagesProgressBar.setVisibility(View.GONE);
+
+                messagesRecyclerView.smoothScrollToPosition(messagesRecyclerView.getAdapter().getItemCount() - 1);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
             }
 
             @Override
