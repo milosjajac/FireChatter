@@ -40,6 +40,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
 import com.twitter.sdk.android.core.TwitterException;
@@ -234,7 +235,8 @@ public class LoginActivity extends AppCompatActivity {
                                         User newUser = new User(
                                                 fUser.getEmail(),
                                                 fUser.getDisplayName(),
-                                                fUser.getPhotoUrl().toString()
+                                                fUser.getPhotoUrl().toString(),
+                                                FirebaseInstanceId.getInstance().getToken()
                                         );
                                         usersDbRef.child(fUser.getUid()).setValue(newUser)
                                                 .addOnSuccessListener(new OnSuccessListener<Void>() {

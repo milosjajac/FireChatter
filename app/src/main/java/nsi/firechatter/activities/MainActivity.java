@@ -123,40 +123,23 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                     chats.set(ind, chat);
                 }
 
-                String loggedUserId = FirebaseAuth.getInstance().getUid();
-                Set<String> memberIds = chat.members.keySet();
-                memberIds.remove(loggedUserId);
+                if (chat.name == null || chat.name.isEmpty()) {
+                    String loggedUserId = FirebaseAuth.getInstance().getUid();
+                    String otherMemberId = "";
+                    for (String memberId : chat.members.keySet()) {
+                        if (!memberId.equals(loggedUserId)) {
+                            otherMemberId = memberId;
+                        }
+                    }
 
-                final List<User> otherMembers = new ArrayList<>();
-                final int[] counter = { memberIds.size() };
-
-                for (String memberId : memberIds) {
-                    usersDbRef.child(memberId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    usersDbRef.child(otherMemberId).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
-                            User user = dataSnapshot.getValue(User.class);
-                            otherMembers.add(user);
-                            counter[0] -= 1;
+                            User otherMember = dataSnapshot.getValue(User.class);
+                            chat.name = otherMember.name;
+                            chat.avatarUrl = otherMember.avatarUrl;
 
-                            if (counter[0] == 0) {
-                                String oldChatName = chat.name;
-                                chat.name = otherMembers.get(0).name;
-                                for (int i = 1 ; i < otherMembers.size(); i++) {
-                                    String nextName = otherMembers.get(i).name;
-
-                                    if (nextName.charAt(0) > chat.name.charAt(0)) {
-                                        chat.name = chat.name + ", " + nextName;
-                                    } else {
-                                        chat.name = nextName + ", " + chat.name;
-                                    }
-                                }
-
-                                if (otherMembers.size() == 1) {
-                                    chat.avatarUrl = otherMembers.get(0).avatarUrl;
-                                }
-
-                                chatsAdapter.notifyDataSetChanged();
-                            }
+                            chatsAdapter.notifyDataSetChanged();
                         }
 
                         @Override
@@ -164,6 +147,8 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
 
                         }
                     });
+                } else {
+                    chatsAdapter.notifyDataSetChanged();
                 }
             }
 

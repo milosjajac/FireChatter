@@ -22,7 +22,7 @@ public class MyFirebaseInstanceIdService extends FirebaseInstanceIdService {
         String currentUserId = FirebaseAuth.getInstance().getUid();
 
         if (currentUserId != null) {
-
+            usersDbRef.child(currentUserId).child("deviceToken").setValue(token);
         }
     }
 }

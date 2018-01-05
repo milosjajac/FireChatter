@@ -32,6 +32,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -198,7 +199,8 @@ public class RegisterActivity extends AppCompatActivity {
                                         @Override
                                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                                             final Uri imageUrl = taskSnapshot.getDownloadUrl();
-                                            User newUser = new User(email, name, imageUrl.toString());
+                                            User newUser = new User(email, name, imageUrl.toString(),
+                                                    FirebaseInstanceId.getInstance().getToken());
 
                                             usersDbRef.child(newUserId).setValue(newUser)
                                                     .addOnCompleteListener(new OnCompleteListener<Void>() {

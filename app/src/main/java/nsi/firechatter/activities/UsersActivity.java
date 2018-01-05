@@ -1,6 +1,8 @@
 package nsi.firechatter.activities;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
@@ -10,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,6 +46,7 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
 
     private List<User> users = new ArrayList<>();
     private UsersRecyclerViewAdapter usersAdapter;
+    private List<String> selectedUserIds;
 
     private DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
     private DatabaseReference usersDbRef = dbRef.child("users");
@@ -120,15 +124,36 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
     }
 
     private void onFinish() {
-        List<String> selectedUserIds = usersAdapter.getSelectedUserIds();
-        if (selectedUserIds.size() > 0) {
-            initiateChatWithUsers(selectedUserIds);
-        } else {
+        selectedUserIds = usersAdapter.getSelectedUserIds();
+        if (selectedUserIds.size() < 1) {
             Toast.makeText(this, getString(R.string.users_activity_none_selected_msg), Toast.LENGTH_SHORT).show();
+        } else if (selectedUserIds.size() == 1) {
+            String singleUserId = selectedUserIds.get(0);
+            for (User user : users) {
+                if (singleUserId.equals(user.id)) {
+                    initiateChatWithName(user.name);
+                    break;
+                }
+            }
+        } else {
+            final EditText chatNameEt = new EditText(UsersActivity.this);
+            AlertDialog dialog = new AlertDialog.Builder(UsersActivity.this)
+                    .setTitle("New chat name")
+                    .setView(chatNameEt)
+                    .setPositiveButton("Finish", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            String chatName = chatNameEt.getText().toString().trim();
+                            initiateChatWithName(chatName);
+                        }
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .create();
+            dialog.show();
         }
     }
 
-    private void initiateChatWithUsers(final List<String> userIds) {
+    private void initiateChatWithName(final String chatName) {
         final String loggedUserId = FirebaseAuth.getInstance().getUid();
         final List<Chat> activeChats = new ArrayList<>();
 
@@ -139,7 +164,7 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
                 user.id = dataSnapshot.getKey();
 
                 if (user.chats.size() == 0) {
-                    createAndOpenNewChat(userIds);
+                    createAndOpenNewChat(chatName);
                 } else {
                     final int[] counter = { user.chats.size() };
                     for (String userChatId : user.chats.keySet()) {
@@ -153,7 +178,7 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
                                 counter[0] -= 1;
 
                                 if (counter[0] == 0) {
-                                    openExistingOrCreateNewChat(userIds, activeChats);
+                                    openExistingOrCreateNewChat(chatName, activeChats);
                                 }
 
                             }
@@ -174,8 +199,8 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
         });
     }
 
-    private void openExistingOrCreateNewChat(List<String> userIds, List<Chat> chats) {
-        List<String> userIdsWithLoggedUser = new ArrayList<>(userIds);
+    private void openExistingOrCreateNewChat(String chatName, List<Chat> chats) {
+        List<String> userIdsWithLoggedUser = new ArrayList<>(selectedUserIds);
         userIdsWithLoggedUser.add(FirebaseAuth.getInstance().getUid());
 
         Set userIdsSet = new HashSet<>(userIdsWithLoggedUser);
@@ -186,7 +211,7 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
             }
         }
 
-        createAndOpenNewChat(userIds);
+        createAndOpenNewChat(chatName);
     }
 
     private void openChatWithId(String chatId) {
@@ -196,12 +221,18 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
         finish();
     }
 
-    private void createAndOpenNewChat(final List<String> userIds) {
-        userIds.add(FirebaseAuth.getInstance().getUid());
+    private void createAndOpenNewChat(String chatName) {
+        List<String> userIdsIncludeCurrent = new ArrayList<>(selectedUserIds);
+        userIdsIncludeCurrent.add(FirebaseAuth.getInstance().getUid());
 
         Chat chat = new Chat();
         chat.lastMsgDate = ServerValue.TIMESTAMP;
-        for (String userId : userIds) {
+
+        if (selectedUserIds.size() > 1) {
+            chat.name = chatName;
+        }
+
+        for (String userId : userIdsIncludeCurrent) {
             chat.members.put(userId, true);
         }
 
@@ -210,7 +241,7 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
         final String newChatKey = chatsDbRef.push().getKey();
         updates.put("chats/" + newChatKey, chat);
 
-        for (String userId : userIds) {
+        for (String userId : userIdsIncludeCurrent) {
             updates.put("users/" + userId + "/chats/" + newChatKey, true);
         }
 

@@ -35,6 +35,7 @@ import java.util.Map;
 
 import nsi.firechatter.R;
 import nsi.firechatter.adapters.MessagesRecyclerViewAdapter;
+import nsi.firechatter.models.Chat;
 import nsi.firechatter.models.Message;
 
 public class ChatActivity extends AppCompatActivity {
@@ -108,38 +109,27 @@ public class ChatActivity extends AppCompatActivity {
     private void getChatAndSetupUI() {
         final String loggedUserId = FirebaseAuth.getInstance().getUid();
 
-        chatsDbRef.child(chatId).child("members").addListenerForSingleValueEvent(new ValueEventListener() {
+        chatsDbRef.child(chatId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                final List<String> otherMemberNames = new ArrayList<>();
-                final long[] counter = { dataSnapshot.getChildrenCount() - 1 };
+                Chat chat = dataSnapshot.getValue(Chat.class);
 
-                for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
-                    String memberId = childSnapshot.getKey();
-
-                    if (memberId.equals(loggedUserId)) {
-                        continue;
+                if (chat.name != null && !chat.name.isEmpty()) {
+                    setTitle(chat.name);
+                } else {
+                    String otherMemberId = "";
+                    for (String memberId : chat.members.keySet()) {
+                        if (!memberId.equals(loggedUserId)) {
+                            otherMemberId = memberId;
+                        }
                     }
 
-                    usersDbRef.child(memberId).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
+                    usersDbRef.child(otherMemberId).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
-                            otherMemberNames.add((String) dataSnapshot.getValue());
-                            counter[0] -= 1;
-
-                            if (counter[0] == 0) {
-                                // create chat name
-                                String chatName = otherMemberNames.get(0);
-                                for (int i = 1; i < otherMemberNames.size(); i++) {
-                                    String nextName = otherMemberNames.get(i);
-
-                                    if (nextName.charAt(0) > chatName.charAt(0)) {
-                                        chatName = chatName + ", " + nextName;
-                                    } else {
-                                        chatName = nextName + ", " + chatName;
-                                    }
-                                }
-                                setTitle(chatName);
+                            String otherMemberName = (String) dataSnapshot.getValue();
+                            if (otherMemberName != null) {
+                                setTitle(otherMemberName);
                             }
                         }
 
