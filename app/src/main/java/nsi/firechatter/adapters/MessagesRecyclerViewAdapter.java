@@ -105,8 +105,8 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
                     messageText.setText(message.getContent());
                     break;
                 case IMAGE:
-                    messageImage.setVisibility(View.GONE);
-                    messageText.setVisibility(View.VISIBLE);
+                    messageImage.setVisibility(View.VISIBLE);
+                    messageText.setVisibility(View.GONE);
                     String messageUrl = message.getContent();
                     if ( messageUrl!= null && !messageUrl.isEmpty()) {
                     Glide.with(mContext)
@@ -143,8 +143,8 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
                     messageText.setText(message.getContent());
                     break;
                 case IMAGE:
-                    messageImage.setVisibility(View.GONE);
-                    messageText.setVisibility(View.VISIBLE);
+                    messageImage.setVisibility(View.VISIBLE);
+                    messageText.setVisibility(View.GONE);
                     String messageUrl = message.getContent();
                     if ( messageUrl!= null && !messageUrl.isEmpty()) {
                         Glide.with(mContext)

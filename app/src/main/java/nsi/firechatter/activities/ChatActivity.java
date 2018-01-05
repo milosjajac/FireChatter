@@ -306,7 +306,7 @@ public class ChatActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_CHOOSE_IMAGE && resultCode == Activity.RESULT_OK) {
             if (data != null && data.getData() != null) {
-                Map<String, Object> updates = new HashMap<>();
+                messagesProgressBar.setVisibility(View.VISIBLE);
 
                 final Message newMessage = new Message(currentUser.getUid(), "", MessageTypeEnum.IMAGE);
                 newMessage.setId(messagesDbRef.push().getKey());
@@ -320,21 +320,27 @@ public class ChatActivity extends AppCompatActivity {
                         .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                             @Override
                             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                messagesProgressBar.setVisibility(View.GONE);
+
                                 final Uri imageUrl = taskSnapshot.getDownloadUrl();
                                 newMessage.setContent(imageUrl.toString());
+
+                                Map<String, Object> updates = new HashMap<>();
+
+                                updates.put("messages/"+chatId+"/"+newMessage.getId(), newMessage);
+                                updates.put("chats/"+chatId+"/lastMsgDate", newMessage.getDateTime());
+                                updates.put("chats/"+chatId+"/lastMsg", "Sent photo.");
+
+                                dbRef.updateChildren(updates).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        messageEt.setText("");
+                                    }
+                                });
                             }
                         });
 
-                updates.put("messages/"+chatId+"/"+newMessage.getId(), newMessage);
-                updates.put("chats/"+chatId+"/lastMsgDate", newMessage.getDateTime());
-                updates.put("chats/"+chatId+"/lastMsg", "Sent photo.");
 
-                dbRef.updateChildren(updates).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        messageEt.setText("");
-                    }
-                });
             }
 
 

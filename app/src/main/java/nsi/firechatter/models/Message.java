@@ -6,6 +6,7 @@ public class Message {
 
     @Exclude
     private String id;
+
     private String senderId;
     private Object dateTime;
     private String content;

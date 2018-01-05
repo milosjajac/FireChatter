@@ -12,7 +12,6 @@
         android:layout_height="wrap_content"
         android:id="@+id/my_message_body"
         android:layout_marginRight="8dp"
-        android:maxWidth="240dp"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -20,13 +19,15 @@
         android:id="@+id/my_message_image_body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="8dp"/>
+        android:maxWidth="240dp"
+        />
 
     <TextView
         android:id="@+id/my_message_text_body"
         android:background="@drawable/rounded_rectangle_orange"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:maxWidth="240dp"
         android:padding="8dp"
         android:textColor="#ffffff" />
 
