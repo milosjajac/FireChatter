@@ -30,8 +30,8 @@
         android:text="Pera Peric"/>
 
     <TextView
-        android:id="@+id/chats_item_last"
-        android:layout_width="match_parent"
+        android:id="@+id/chats_item_last_message"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@id/chats_item_name"
         android:layout_alignBottom="@id/chats_item_avatar"
@@ -39,5 +39,17 @@
         android:ellipsize="end"
         android:textSize="16sp"
         android:text="Sta bi bilo kad bi bilo"/>
+
+    <TextView
+        android:id="@+id/chats_item_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignBottom="@id/chats_item_name"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:textSize="16sp"
+        android:text="18:15"
+        app:layout_constraintLeft_toRightOf="@id/chats_item_name"/>
 
 </RelativeLayout>

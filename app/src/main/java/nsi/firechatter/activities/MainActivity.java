@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.util.SortedList;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -24,9 +23,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 import nsi.firechatter.R;
 import nsi.firechatter.adapters.ChatsRecyclerViewAdapter;
@@ -42,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
 
     private List<Chat> chats = new ArrayList<>();
     private ChatsRecyclerViewAdapter chatsAdapter;
+    String currentUserId;
 
     private DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
     private DatabaseReference usersDbRef = dbRef.child("users");
@@ -72,6 +70,9 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                 onNewClick();
             }
         });
+
+        currentUserId = FirebaseAuth.getInstance().getUid();
+        chatsAdapter.setCurrentUserId(currentUserId);
 
         getUserChatsAndSetupUI();
     }
@@ -124,10 +125,9 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                 }
 
                 if (chat.name == null || chat.name.isEmpty()) {
-                    String loggedUserId = FirebaseAuth.getInstance().getUid();
                     String otherMemberId = "";
                     for (String memberId : chat.members.keySet()) {
-                        if (!memberId.equals(loggedUserId)) {
+                        if (!memberId.equals(currentUserId)) {
                             otherMemberId = memberId;
                         }
                     }

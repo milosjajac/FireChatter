@@ -74,12 +74,13 @@ public class ChatActivity extends AppCompatActivity {
     private ProgressBar messagesProgressBar;
     private TextView messagesEmptyText;
     private TextView typingIndicatorText;
+    private TextView seenIndicatorText;
 
     private String chatId;
     private String selectedImageLocalPath;
 
 
-    private FirebaseUser currentUser;
+    private FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
     private DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
     private final DatabaseReference usersDbRef = dbRef.child("users");
     private DatabaseReference chatsDbRef = dbRef.child("chats");
@@ -90,6 +91,7 @@ public class ChatActivity extends AppCompatActivity {
     private MessagesRecyclerViewAdapter messagesAdapter;
     private boolean isTyping;
     private Map<String, String> usersTyping = new LinkedHashMap<>();
+    private Map<String, Long> usersSeen = new LinkedHashMap<>();
     private HashMap<String, User> members = new HashMap<>();
     private int lastScrolledToPosition = 0;
 
@@ -114,7 +116,10 @@ public class ChatActivity extends AppCompatActivity {
         imageBtn = findViewById(R.id.chat_activity_image_btn);
         sendBtn = findViewById(R.id.chat_activity_send_btn);
         messageEt = findViewById(R.id.chat_activity_message_text);
+
+
         typingIndicatorText = findViewById(R.id.chat_activity_typing_indicator);
+        seenIndicatorText = findViewById(R.id.chat_activity_seen_indicator);
 
         imageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -141,9 +146,16 @@ public class ChatActivity extends AppCompatActivity {
         chatId = getIntent().getStringExtra(EXTRA_CHAT_ID);
         messagesDbRef = dbRef.child("messages").child(chatId);
 
+        messageEt.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    chatsDbRef.child(chatId).child("members").child(currentUser.getUid()).setValue(ServerValue.TIMESTAMP);
+                }
+            }
+        });
+        messageEt.requestFocus();
         messageEt.addTextChangedListener(typingIndicator);
-
-        currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
         getChatAndSetupUI();
     }
@@ -230,6 +242,34 @@ public class ChatActivity extends AppCompatActivity {
                     usersTyping.remove(dataSnapshot.getKey());
                     updateTypingIndicatorText();
                 }
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        chatsDbRef.child(chatId).child("members").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                usersSeen.put(dataSnapshot.getKey(),(long) dataSnapshot.getValue());
+                //TODO update seen indicator
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                usersSeen.put(dataSnapshot.getKey(),(long) dataSnapshot.getValue());
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
             }
 
             @Override
@@ -371,11 +411,7 @@ public class ChatActivity extends AppCompatActivity {
                                 });
                             }
                         });
-
-
             }
-
-
         }
     }
 

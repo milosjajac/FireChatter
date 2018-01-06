@@ -16,7 +16,7 @@ public class Chat {
     public String name;
     public String lastMsg;
     public Object lastMsgDate;
-    public Map<String, Boolean> members = new HashMap<>();
+    public Map<String, Object> members = new HashMap<>();
 
     public Chat() {
         // Default constructor required for calls to DataSnapshot.getValue(Chat.class)

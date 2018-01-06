@@ -237,7 +237,7 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
         }
 
         for (String userId : userIdsIncludeCurrent) {
-            chat.members.put(userId, true);
+            chat.members.put(userId, ServerValue.TIMESTAMP);
         }
 
         Map<String, Object> updates = new HashMap<>();
