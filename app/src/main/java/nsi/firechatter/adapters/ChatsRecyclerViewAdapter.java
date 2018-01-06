@@ -80,6 +80,7 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
                 break;
         }
 
+        //TODO update members || refresh view
         holder.chatLastTimeTv.setText(df.format(holder.chat.lastMsgDate));
         if ((long)holder.chat.lastMsgDate > (long)holder.chat.members.get(currentUserId))
         {

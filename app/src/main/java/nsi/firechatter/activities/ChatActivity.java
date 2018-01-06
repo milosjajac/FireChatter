@@ -293,6 +293,24 @@ public class ChatActivity extends AppCompatActivity {
                 final Message mMessage = dataSnapshot.getValue(Message.class);
                 messages.add(mMessage);
 
+                //TODO seen
+//                seenIndicatorText.setVisibility(View.GONE);
+//
+//                String seen = "Seen by ";
+//                for (String member : usersSeen.keySet()) {
+//                    if(!member.equals(currentUser.getUid())) {
+//                        if ((long)mMessage.dateTime < usersSeen.get(member)) {
+//                            seen = seen.concat(members.get(member).name);
+//                        }
+//                    }
+//                }
+//
+//                if (!seen.equals("Seen by "))
+//                {
+//                    seenIndicatorText.setText(seen);
+//                    seenIndicatorText.setVisibility(View.VISIBLE);
+//                }
+
                 messagesAdapter.notifyDataSetChanged();
                 messagesProgressBar.setVisibility(View.GONE);
             }
