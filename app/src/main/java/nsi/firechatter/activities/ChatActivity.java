@@ -21,7 +21,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -173,70 +172,56 @@ public class ChatActivity extends AppCompatActivity {
 
     private void getChatAndSetupUI() {
         final String loggedUserId = FirebaseAuth.getInstance().getUid();
-
-        chatsDbRef.addChildEventListener(new ChildEventListener() {
+        chatsDbRef.child(chatId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                if(dataSnapshot.getKey().equals(chatId)) {
-                    final Chat chat = dataSnapshot.getValue(Chat.class);
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final Chat chat = dataSnapshot.getValue(Chat.class);
 
-                    if (chat.name != null && !chat.name.isEmpty()) {
-                        setTitle(chat.name);
+                if (chat.name != null && !chat.name.isEmpty()) {
+                    setTitle(chat.name);
+                }
+
+                final int[] counter = {chat.members.size() - 1};
+                for (final String memberId : chat.members.keySet()) {
+                    if (memberId.equals(loggedUserId)) {
+                        continue;
                     }
 
-                    final int[] counter = {chat.members.size() - 1};
-                    for (final String memberId : chat.members.keySet()) {
-                        if (memberId.equals(loggedUserId)) {
-                            continue;
+                    usersDbRef.child(memberId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot1) {
+                            User member = dataSnapshot1.getValue(User.class);
+                            members.put(memberId, member);
+
+                            counter[0] -= 1;
+                            if (counter[0] == 0) {
+                                if (members.size() == 1) {
+                                    setTitle(members.entrySet().iterator().next().getValue().name);
+                                }
+
+                                startTrackingMessages();
+
+                                // Start tracking for typing and seen indicators some time
+                                // later to avoid crashing for whatever goddamn reason
+                                final Handler handler = new Handler();
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        startTrackingWhoIsTyping();
+                                        startTrackingWhoHasSeen();
+                                    }
+                                }, 500);
+                            }
                         }
 
-                        usersDbRef.child(memberId).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot1) {
-                                User member = dataSnapshot1.getValue(User.class);
-                                members.put(memberId, member);
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
 
-                                counter[0] -= 1;
-                                if (counter[0] == 0) {
-                                    if (members.size() == 1) {
-                                        setTitle(members.entrySet().iterator().next().getValue().name);
-                                    }
-
-                                    startTrackingMessages();
-
-                                    // Start tracking for typing and seen indicators some time
-                                    // later to avoid crashing for whatever goddamn reason
-                                    final Handler handler = new Handler();
-                                    handler.postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            startTrackingWhoIsTyping();
-                                            startTrackingWhoHasSeen();
-                                        }
-                                    }, 500);
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-                    }
+                        }
+                    });
                 }
             }
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
-            }
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
@@ -250,10 +235,20 @@ public class ChatActivity extends AppCompatActivity {
         messagesDbRef.orderByChild("dateTime").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                final Message mMessage = dataSnapshot.getValue(Message.class);
-                messages.add(0, mMessage);
+                final Message newMessage = dataSnapshot.getValue(Message.class);
+                newMessage.id = dataSnapshot.getKey();
 
-                messagesAdapter.notifyItemInserted(0);
+                int ind = 0;
+                if (messages.size() == 1 && s == null) {
+                    ind = 1;
+                } else if (messages.size() >= 2) {
+                    while (messages.get(ind).id != s) {
+                        ind += 1;
+                    }
+                }
+                messages.add(ind, newMessage);
+
+                messagesAdapter.notifyItemInserted(ind);
                 messagesProgressBar.setVisibility(View.GONE);
             }
 
