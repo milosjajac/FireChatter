@@ -58,6 +58,7 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
         setContentView(R.layout.activity_users);
         Toolbar toolbar = findViewById(R.id.users_activity_toolbar);
         setSupportActionBar(toolbar);
+        setTitle(R.string.users_activity_title);
 
         usersRecyclerView = findViewById(R.id.users_activity_users_list);
         usersProgressBar = findViewById(R.id.users_activity_users_progress);

@@ -249,6 +249,7 @@ public class ChatActivity extends AppCompatActivity {
                 messages.add(ind, newMessage);
 
                 messagesAdapter.notifyItemInserted(ind);
+                messagesEmptyText.setVisibility(View.GONE);
                 messagesProgressBar.setVisibility(View.GONE);
             }
 
@@ -265,6 +266,21 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        messagesDbRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() == null) {
+                    messagesEmptyText.setVisibility(View.VISIBLE);
+                    messagesProgressBar.setVisibility(View.GONE);
+                }
             }
 
             @Override

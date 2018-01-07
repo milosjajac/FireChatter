@@ -119,7 +119,7 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
         }
         else
         {
-            holder.chatLastMsgTv.setText("This is new conversation");
+            holder.chatLastMsgTv.setText(R.string.main_activity_no_chat_messages);
             holder.chatLastTimeTv.setText("");
         }
 
