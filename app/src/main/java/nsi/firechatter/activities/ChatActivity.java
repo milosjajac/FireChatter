@@ -242,7 +242,7 @@ public class ChatActivity extends AppCompatActivity {
                 if (messages.size() == 1 && s == null) {
                     ind = 1;
                 } else if (messages.size() >= 2) {
-                    while (messages.get(ind).id != s) {
+                    while (!messages.get(ind).id.equals(s)) {
                         ind += 1;
                     }
                 }
