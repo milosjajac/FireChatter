@@ -25,7 +25,9 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import nsi.firechatter.R;
 import nsi.firechatter.adapters.ChatsRecyclerViewAdapter;
@@ -53,6 +55,9 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
     private DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
     private DatabaseReference usersDbRef = dbRef.child("users");
     private DatabaseReference chatsDbRef = dbRef.child("chats");
+
+    private Map<DatabaseReference, ValueEventListener> valueEventListeners = new HashMap<>();
+    private Map<DatabaseReference, ChildEventListener> childEventListeners = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,9 +91,28 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
         getUserChatsAndSetupUI();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        getUserChatsAndSetupUI();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        for (Map.Entry<DatabaseReference, ChildEventListener> entry : childEventListeners.entrySet()) {
+            entry.getKey().removeEventListener(entry.getValue());
+        }
+
+        for (Map.Entry<DatabaseReference, ValueEventListener> entry : valueEventListeners.entrySet()) {
+            entry.getKey().removeEventListener(entry.getValue());
+        }
+    }
+
     private void getUserChatsAndSetupUI() {
         String userId = FirebaseAuth.getInstance().getUid();
-        usersDbRef.child(userId).child("chats").addChildEventListener(new ChildEventListener() {
+        ChildEventListener chatsChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 getChatAndSetupUI(dataSnapshot.getKey());
@@ -113,11 +137,13 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        };
+        usersDbRef.child(userId).child("chats").addChildEventListener(chatsChildEventListener);
+        childEventListeners.put(usersDbRef.child(userId).child("chats"), chatsChildEventListener);
     }
 
     private void getChatAndSetupUI(final String chatId) {
-        chatsDbRef.child(chatId).addValueEventListener(new ValueEventListener() {
+        ValueEventListener chatValueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 chatsRecyclerView.setVisibility(View.VISIBLE);
@@ -237,7 +263,10 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        };
+
+        chatsDbRef.child(chatId).addValueEventListener(chatValueEventListener);
+        valueEventListeners.put(chatsDbRef.child(chatId), chatValueEventListener);
     }
 
     private int chatIndexOf(Chat chat) {
