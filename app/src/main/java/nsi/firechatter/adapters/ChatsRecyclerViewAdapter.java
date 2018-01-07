@@ -57,9 +57,22 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
     public void onBindViewHolder(final ChatViewHolder holder, int position) {
         holder.chat = chats.get(position);
         holder.chatNameTv.setText(holder.chat.name);
+        String text = "";
 
         if(holder.chat.lastMsgId!=null) {
-            holder.chatLastMsgTv.setText(holder.chat.lastMsg);
+            if(holder.chat.lastMsgSenderId.equals(currentUserId))
+            {
+                text = "You: ";
+            }
+            else if(holder.chat.members.size()==2) {
+                text = "";
+            }else {
+                text = holder.chat.lastMsgSenderName + ": ";
+            }
+
+            text = text + holder.chat.lastMsg;
+
+            holder.chatLastMsgTv.setText(text);
 
             int daysDiff = (int) (TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis())
                     - TimeUnit.MILLISECONDS.toDays((long) holder.chat.lastMsgDate));

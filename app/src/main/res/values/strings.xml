@@ -37,4 +37,8 @@
 
     <string name="facebook_app_id">2123485874335698</string>
     <string name="fb_login_protocol_scheme">fb2123485874335698</string>
+    <string name="reset_password_activity_reset_btn">RESET</string>
+    <string name="reset_password_activity_create">Enter Email to get password reset instructions.</string>
+    <string name="reset_password_activity_progress">Sending email&#8230;</string>
+    <string name="login_activity_forgot_password_btn"><u>Forgot password?</u></string>
 </resources>

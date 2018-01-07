@@ -55,6 +55,8 @@
         <activity android:name=".activities.ChatActivity"
             android:windowSoftInputMode="stateHidden|adjustResize">
         </activity>
+        <activity android:name=".activities.ResetPasswordActivity" />
+
         <service
             android:name=".services.MyFirebaseMessagingService">
             <intent-filter>

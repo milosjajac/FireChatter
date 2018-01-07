@@ -63,6 +63,8 @@ public class LoginActivity extends AppCompatActivity {
     private EditText passwordEt;
     private Button loginBtn;
     private TextView registerBtn;
+    private TextView forgotPasswordBtn;
+    private String email;
 
     private CallbackManager fbCallbackManager;
     private TwitterAuthClient twitterAuthClient;
@@ -70,7 +72,6 @@ public class LoginActivity extends AppCompatActivity {
     private GoogleSignInClient googleSignInClient;
 
     private DatabaseReference usersDbRef = FirebaseDatabase.getInstance().getReference().child("users");
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +81,9 @@ public class LoginActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         goToMainIfAuthenticated();
 
+        Intent i = getIntent();
+        email = i.getStringExtra("Reset_Email");
+
         fbBtn = findViewById(R.id.login_activity_fb_btn);
         twitterBtn = findViewById(R.id.login_activity_twitter_btn);
         gplusBtn = findViewById(R.id.login_activity_gplus_btn);
@@ -87,6 +91,13 @@ public class LoginActivity extends AppCompatActivity {
         passwordEt = findViewById(R.id.login_activity_password_et);
         loginBtn = findViewById(R.id.login_activity_login_btn);
         registerBtn = findViewById(R.id.login_activity_register_btn);
+        forgotPasswordBtn = findViewById(R.id.login_activity_forgot_password_btn);
+
+        emailEt.setText(email);
+        if(email!=null)
+        {
+            passwordEt.requestFocus();
+        }
 
         fbBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -118,7 +129,11 @@ public class LoginActivity extends AppCompatActivity {
                 onRegisterClick();
             }
         });
-
+        forgotPasswordBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {onForgottenPasswordClick();
+            }
+        });
 
         fbCallbackManager = CallbackManager.Factory.create();
         LoginManager.getInstance().registerCallback(fbCallbackManager, new FacebookCallback<LoginResult>() {
@@ -319,4 +334,11 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
     }
 
+    private void onForgottenPasswordClick()
+    {
+        Intent i = new Intent(LoginActivity.this, ResetPasswordActivity.class);
+        email = emailEt.getText().toString();
+        i.putExtra("Email",email);
+        startActivity(i);
+    }
 }

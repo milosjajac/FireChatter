@@ -138,46 +138,59 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                                 chat.lastMsg = message.content;
                             }
                             chat.lastMsgDate = message.dateTime;
-
-                            if (ind == -1) {
-                                chats.add(0, chat);
-                            } else {
-                                chats.set(ind, chat);
-                            }
-
-                            Collections.sort(chats, new Comparator<Chat>() {
+                            chat.lastMsgSenderId = message.senderId;
+                            usersDbRef.child(chat.lastMsgSenderId).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
-                                public int compare(Chat o1, Chat o2) {
-                                    return (int)((long)o2.lastMsgDate - (long)o1.lastMsgDate);
-                                }
-                            });
+                                public void onDataChange(DataSnapshot dataSnapshot2) {
+                                    chat.lastMsgSenderName = dataSnapshot2.getValue(String.class);
 
-                            if (chat.name == null || chat.name.isEmpty()) {
-                                String otherMemberId = "";
-                                for (String memberId : chat.members.keySet()) {
-                                    if (!memberId.equals(currentUserId)) {
-                                        otherMemberId = memberId;
+                                    if (ind == -1) {
+                                        chats.add(0, chat);
+                                    } else {
+                                        chats.set(ind, chat);
                                     }
-                                }
 
-                                usersDbRef.child(otherMemberId).addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
-                                        User otherMember = dataSnapshot.getValue(User.class);
-                                        chat.name = otherMember.name;
-                                        chat.avatarUrl = otherMember.avatarUrl;
+                                    Collections.sort(chats, new Comparator<Chat>() {
+                                        @Override
+                                        public int compare(Chat o1, Chat o2) {
+                                            return (int)((long)o2.lastMsgDate - (long)o1.lastMsgDate);
+                                        }
+                                    });
 
+                                    if (chat.name == null || chat.name.isEmpty()) {
+                                        String otherMemberId = "";
+                                        for (String memberId : chat.members.keySet()) {
+                                            if (!memberId.equals(currentUserId)) {
+                                                otherMemberId = memberId;
+                                            }
+                                        }
+
+                                        usersDbRef.child(otherMemberId).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot3) {
+                                                User otherMember = dataSnapshot3.getValue(User.class);
+                                                chat.name = otherMember.name;
+                                                chat.avatarUrl = otherMember.avatarUrl;
+
+                                                chatsAdapter.notifyDataSetChanged();
+                                            }
+
+                                            @Override
+                                            public void onCancelled(DatabaseError databaseError) {
+
+                                            }
+                                        });
+                                    } else {
                                         chatsAdapter.notifyDataSetChanged();
                                     }
 
-                                    @Override
-                                    public void onCancelled(DatabaseError databaseError) {
+                                }
 
-                                    }
-                                });
-                            } else {
-                                chatsAdapter.notifyDataSetChanged();
-                            }
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
                         }
 
                         @Override
