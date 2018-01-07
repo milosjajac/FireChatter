@@ -28,6 +28,8 @@ import java.util.List;
 import nsi.firechatter.R;
 import nsi.firechatter.adapters.ChatsRecyclerViewAdapter;
 import nsi.firechatter.models.Chat;
+import nsi.firechatter.models.Message;
+import nsi.firechatter.models.MessageTypeEnum;
 import nsi.firechatter.models.User;
 
 public class MainActivity extends AppCompatActivity implements ChatsRecyclerViewAdapter.OnChatInteractionListener {
@@ -116,30 +118,52 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
 
                 final Chat chat = dataSnapshot.getValue(Chat.class);
                 chat.id = dataSnapshot.getKey();
+                final int ind = chatIndexOf(chat);
 
-                int ind = chatIndexOf(chat);
-                if (ind == -1) {
-                    ind = addChatToCorrectPosition(chat);
-                } else {
-                    chats.set(ind, chat);
-                }
-
-                if (chat.name == null || chat.name.isEmpty()) {
-                    String otherMemberId = "";
-                    for (String memberId : chat.members.keySet()) {
-                        if (!memberId.equals(currentUserId)) {
-                            otherMemberId = memberId;
-                        }
-                    }
-
-                    usersDbRef.child(otherMemberId).addListenerForSingleValueEvent(new ValueEventListener() {
+                //TODO optimisation
+                if (chat.lastMsgId != null) {
+                    dbRef.child("messages").child(chat.id).child(chat.lastMsgId).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            User otherMember = dataSnapshot.getValue(User.class);
-                            chat.name = otherMember.name;
-                            chat.avatarUrl = otherMember.avatarUrl;
+                        public void onDataChange(DataSnapshot dataSnapshot1) {
+                            Message message = dataSnapshot1.getValue(Message.class);
+                            chat.lastMsg = "Sent photo.";
+                            if (message.type == MessageTypeEnum.TEXT) {
+                                chat.lastMsg = message.content;
+                            }
+                            chat.lastMsgDate = message.dateTime;
 
-                            chatsAdapter.notifyDataSetChanged();
+                            if (ind == -1) {
+                                addChatToCorrectPosition(chat);
+                            } else {
+                                chats.set(ind, chat);
+                            }
+
+                            if (chat.name == null || chat.name.isEmpty()) {
+                                String otherMemberId = "";
+                                for (String memberId : chat.members.keySet()) {
+                                    if (!memberId.equals(currentUserId)) {
+                                        otherMemberId = memberId;
+                                    }
+                                }
+
+                                usersDbRef.child(otherMemberId).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        User otherMember = dataSnapshot.getValue(User.class);
+                                        chat.name = otherMember.name;
+                                        chat.avatarUrl = otherMember.avatarUrl;
+
+                                        chatsAdapter.notifyDataSetChanged();
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                            } else {
+                                chatsAdapter.notifyDataSetChanged();
+                            }
                         }
 
                         @Override
@@ -148,10 +172,40 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                         }
                     });
                 } else {
-                    chatsAdapter.notifyDataSetChanged();
+                    if (ind == -1) {
+                        chats.add(0, chat);
+                    } else {
+                        chats.set(ind, chat);
+                    }
+
+                    if (chat.name == null || chat.name.isEmpty()) {
+                        String otherMemberId = "";
+                        for (String memberId : chat.members.keySet()) {
+                            if (!memberId.equals(currentUserId)) {
+                                otherMemberId = memberId;
+                            }
+                        }
+
+                        usersDbRef.child(otherMemberId).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                User otherMember = dataSnapshot.getValue(User.class);
+                                chat.name = otherMember.name;
+                                chat.avatarUrl = otherMember.avatarUrl;
+
+                                chatsAdapter.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    } else {
+                        chatsAdapter.notifyDataSetChanged();
+                    }
                 }
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
 

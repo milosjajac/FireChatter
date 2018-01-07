@@ -230,7 +230,6 @@ public class UsersActivity extends AppCompatActivity implements UsersRecyclerVie
         userIdsIncludeCurrent.add(FirebaseAuth.getInstance().getUid());
 
         Chat chat = new Chat();
-        chat.lastMsgDate = ServerValue.TIMESTAMP;
 
         if (selectedUserIds.size() > 1) {
             chat.name = chatName;

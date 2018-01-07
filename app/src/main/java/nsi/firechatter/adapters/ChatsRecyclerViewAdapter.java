@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import nsi.firechatter.R;
+import nsi.firechatter.activities.ChatActivity;
 import nsi.firechatter.models.Chat;
 
 public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecyclerViewAdapter.ChatViewHolder> {
@@ -57,39 +58,41 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
     public void onBindViewHolder(final ChatViewHolder holder, int position) {
         holder.chat = chats.get(position);
         holder.chatNameTv.setText(holder.chat.name);
-        holder.chatLastMsgTv.setText(holder.chat.lastMsg);
 
-        int daysDiff = (int) (TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis())
-        - TimeUnit.MILLISECONDS.toDays((long)holder.chat.lastMsgDate));
+        if(holder.chat.lastMsgId!=null) {
+            holder.chatLastMsgTv.setText(holder.chat.lastMsg);
 
-        switch (daysDiff)
-        {
-            case 0:
-                df = new SimpleDateFormat("HH:mm");
-                break;
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-                df = new SimpleDateFormat("E");
-                break;
-            default:
-                df = new SimpleDateFormat("dd. MMM ''yy");
-                break;
+            int daysDiff = (int) (TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis())
+                    - TimeUnit.MILLISECONDS.toDays((long) holder.chat.lastMsgDate));
+
+            switch (daysDiff) {
+                case 0:
+                    df = new SimpleDateFormat("HH:mm");
+                    break;
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                    df = new SimpleDateFormat("E");
+                    break;
+                default:
+                    df = new SimpleDateFormat("dd. MMM ''yy");
+                    break;
+            }
+
+            holder.chatLastTimeTv.setText(df.format(holder.chat.lastMsgDate));
+
+            long lastActivity = (long) holder.chat.members.get(currentUserId);
+
+            if (lastActivity != ChatActivity.SECRET_DATE && lastActivity < (long) holder.chat.lastMsgDate) {
+                holder.chatLastMsgTv.setTextColor(Color.BLACK);
+                holder.chatLastMsgTv.setTypeface(null, Typeface.BOLD);
+                holder.chatLastTimeTv.setTextColor(Color.BLACK);
+                holder.chatLastTimeTv.setTypeface(null, Typeface.BOLD);
+            }
         }
-
-        //TODO update members || refresh view
-        holder.chatLastTimeTv.setText(df.format(holder.chat.lastMsgDate));
-        if ((long)holder.chat.lastMsgDate > (long)holder.chat.members.get(currentUserId))
-        {
-            holder.chatLastMsgTv.setTextColor(Color.BLACK);
-            holder.chatLastMsgTv.setTypeface(null,Typeface.BOLD);
-            holder.chatLastTimeTv.setTextColor(Color.BLACK);
-            holder.chatLastTimeTv.setTypeface(null,Typeface.BOLD);
-        }
-
         if (holder.chat.avatarUrl != null && !holder.chat.avatarUrl.isEmpty()) {
             Glide.with(context)
                     .load(holder.chat.avatarUrl)

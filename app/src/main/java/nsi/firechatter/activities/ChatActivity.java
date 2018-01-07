@@ -67,6 +67,7 @@ public class ChatActivity extends AppCompatActivity {
     public static final String EXTRA_CHAT_ID = "chatId";
     private static final int RC_STORAGE_PERMISSION = 1;
     private static final int RC_CHOOSE_IMAGE = 2;
+    public static final long SECRET_DATE = 766630659564L; //18.04.1994.
 
     private ImageView imageBtn;
     private ImageView sendBtn;
@@ -78,6 +79,8 @@ public class ChatActivity extends AppCompatActivity {
 
     private String chatId;
     private String selectedImageLocalPath;
+    private long lastMessageTime;
+    private String lastMessageSenderId;
 
 
     private FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -145,15 +148,6 @@ public class ChatActivity extends AppCompatActivity {
 
         chatId = getIntent().getStringExtra(EXTRA_CHAT_ID);
         messagesDbRef = dbRef.child("messages").child(chatId);
-
-        messageEt.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    chatsDbRef.child(chatId).child("members").child(currentUser.getUid()).setValue(ServerValue.TIMESTAMP);
-                }
-            }
-        });
         messageEt.requestFocus();
         messageEt.addTextChangedListener(typingIndicator);
 
@@ -166,12 +160,16 @@ public class ChatActivity extends AppCompatActivity {
         IntentFilter intentFilter = new IntentFilter("dofijghdoflkghdflk");
         intentFilter.setPriority(100);
         registerReceiver(newMessageNotificationReceiver, intentFilter);
+
+        chatsDbRef.child(chatId).child("members").child(currentUser.getUid()).setValue(SECRET_DATE);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(newMessageNotificationReceiver);
+
+        chatsDbRef.child(chatId).child("members").child(currentUser.getUid()).setValue(ServerValue.TIMESTAMP);
     }
 
     private void getChatAndSetupUI() {
@@ -254,17 +252,24 @@ public class ChatActivity extends AppCompatActivity {
 
             }
         });
+    }
 
-        chatsDbRef.child(chatId).child("members").addChildEventListener(new ChildEventListener() {
+    private void startTrackingMessages() {
+        messagesAdapter.setMembers(members);
+
+        messagesDbRef.orderByChild("dateTime").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                usersSeen.put(dataSnapshot.getKey(),(long) dataSnapshot.getValue());
-                //TODO update seen indicator
+                final Message mMessage = dataSnapshot.getValue(Message.class);
+                messages.add(mMessage);
+
+                messagesAdapter.notifyDataSetChanged();
+                messagesProgressBar.setVisibility(View.GONE);
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                usersSeen.put(dataSnapshot.getKey(),(long) dataSnapshot.getValue());
+
             }
 
             @Override
@@ -282,42 +287,23 @@ public class ChatActivity extends AppCompatActivity {
 
             }
         });
-    }
 
-    private void startTrackingMessages() {
-        messagesAdapter.setMembers(members);
-
-        messagesDbRef.orderByChild("dateTime").addChildEventListener(new ChildEventListener() {
+        chatsDbRef.child(chatId).child("members").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                final Message mMessage = dataSnapshot.getValue(Message.class);
-                messages.add(mMessage);
-
-                //TODO seen
-//                seenIndicatorText.setVisibility(View.GONE);
-//
-//                String seen = "Seen by ";
-//                for (String member : usersSeen.keySet()) {
-//                    if(!member.equals(currentUser.getUid())) {
-//                        if ((long)mMessage.dateTime < usersSeen.get(member)) {
-//                            seen = seen.concat(members.get(member).name);
-//                        }
-//                    }
-//                }
-//
-//                if (!seen.equals("Seen by "))
-//                {
-//                    seenIndicatorText.setText(seen);
-//                    seenIndicatorText.setVisibility(View.VISIBLE);
-//                }
-
-                messagesAdapter.notifyDataSetChanged();
-                messagesProgressBar.setVisibility(View.GONE);
+                String currentUserId = currentUser.getUid();
+                if (!dataSnapshot.getKey().equals(currentUserId)) {
+                    usersSeen.put(dataSnapshot.getKey(), (long) dataSnapshot.getValue());
+                    updateSeenIndicatorText();
+                }
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
+                if (!dataSnapshot.getKey().equals(currentUser.getUid())) {
+                    usersSeen.put(dataSnapshot.getKey(), (long) dataSnapshot.getValue());
+                    updateSeenIndicatorText();
+                }
             }
 
             @Override
@@ -356,6 +342,51 @@ public class ChatActivity extends AppCompatActivity {
 
         typingIndicatorText.setText(text);
     }
+
+    private void updateSeenIndicatorText() {
+        String text = "";
+
+        if(lastMessageSenderId != null) {
+            int size = usersSeen.size();
+            if (size == 1) {
+                if (lastMessageSenderId.equals(currentUser.getUid())) {
+                    for (String userId : usersSeen.keySet()) {
+                        long lastUserActivity = usersSeen.get(userId);
+                        if (lastUserActivity == SECRET_DATE || lastUserActivity > lastMessageTime) {
+//                            DateFormat df = new SimpleDateFormat("HH:mm");
+//                            if (lastUserActivity == SECRET_DATE) {
+//                                lastUserActivity = lastMessageTime;
+//                            }
+//                            text = "Seen" + df.format(lastUserActivity);
+                            text = "Seen";
+                        }
+                    }
+                }
+            } else if (size > 1) {
+                    for (String userId : usersSeen.keySet()) {
+                        long lastUserActivity = usersSeen.get(userId);
+                        if (lastUserActivity == SECRET_DATE || lastUserActivity > lastMessageTime) {
+                            if (text.isEmpty()) {
+                                text = members.get(userId).name;
+                            } else {
+                                text = text + ", " + members.get(userId).name;
+                            }
+                        }
+                    }
+                    if(!text.isEmpty()){
+                        int count = text.length() - text.replace(",", "").length();
+                        if (count==size)
+                        {
+                            text = "everyone";
+                        }
+                        text = "Seen by " + text;
+                    }
+                }
+            }
+
+        seenIndicatorText.setText(text);
+    }
+
 
     private void onImageClick() {
         checkReadStoragePermission();
@@ -418,8 +449,7 @@ public class ChatActivity extends AppCompatActivity {
                                 Map<String, Object> updates = new HashMap<>();
 
                                 updates.put("messages/"+chatId+"/"+newMessage.id, newMessage);
-                                updates.put("chats/"+chatId+"/lastMsgDate", newMessage.dateTime);
-                                updates.put("chats/"+chatId+"/lastMsg", "Sent photo.");
+                                updates.put("chats/"+chatId+"/lastMsgId", newMessage.id);
 
                                 dbRef.updateChildren(updates).addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
@@ -459,8 +489,7 @@ public class ChatActivity extends AppCompatActivity {
             newMessage.dateTime = ServerValue.TIMESTAMP;
 
             updates.put("messages/"+chatId+"/"+newMessage.id, newMessage);
-            updates.put("chats/"+chatId+"/lastMsgDate", newMessage.dateTime);
-            updates.put("chats/"+chatId+"/lastMsg", newMessage.content);
+            updates.put("chats/"+chatId+"/lastMsgId", newMessage.id);
 
             dbRef.updateChildren(updates).addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
