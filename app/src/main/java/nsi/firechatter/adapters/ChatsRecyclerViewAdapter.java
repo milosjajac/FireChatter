@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import nsi.firechatter.R;
 import nsi.firechatter.activities.ChatActivity;
 import nsi.firechatter.models.Chat;
+import nsi.firechatter.models.MessageTypeEnum;
 
 public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecyclerViewAdapter.ChatViewHolder> {
 
@@ -57,22 +58,26 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
     public void onBindViewHolder(final ChatViewHolder holder, int position) {
         holder.chat = chats.get(position);
         holder.chatNameTv.setText(holder.chat.name);
-        String text = "";
+        String msgPrefix = "";
 
         if(holder.chat.lastMsgId!=null) {
             if(holder.chat.lastMsgSenderId.equals(currentUserId))
             {
-                text = "You: ";
+                msgPrefix = "You";
             }
             else if(holder.chat.members.size()==2) {
-                text = "";
+                msgPrefix = "";
             }else {
-                text = holder.chat.lastMsgSenderName + ": ";
+                msgPrefix = holder.chat.lastMsgSenderName.split(" ", 2)[0];
             }
 
-            text = text + holder.chat.lastMsg;
+            if(!msgPrefix.isEmpty()) {
+                if (holder.chat.lastMsgType == MessageTypeEnum.TEXT) {
+                    msgPrefix = msgPrefix + ": ";
+                }
+            }
 
-            holder.chatLastMsgTv.setText(text);
+            holder.chatLastMsgTv.setText(msgPrefix.concat(holder.chat.lastMsg));
 
             int daysDiff = (int) (TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis())
                     - TimeUnit.MILLISECONDS.toDays((long) holder.chat.lastMsgDate));
@@ -117,6 +122,7 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
             holder.chatLastMsgTv.setText("This is new conversation");
             holder.chatLastTimeTv.setText("");
         }
+
         if (holder.chat.avatarUrl != null && !holder.chat.avatarUrl.isEmpty()) {
             Glide.with(context)
                     .load(holder.chat.avatarUrl)

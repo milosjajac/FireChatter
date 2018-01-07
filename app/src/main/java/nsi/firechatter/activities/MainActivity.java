@@ -159,8 +159,9 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot1) {
                             Message message = dataSnapshot1.getValue(Message.class);
-                            chat.lastMsg = "Sent a photo.";
-                            if (message.type == MessageTypeEnum.TEXT) {
+                            chat.lastMsg = " sent a photo.";
+                            chat.lastMsgType = message.type;
+                            if (chat.lastMsgType == MessageTypeEnum.TEXT) {
                                 chat.lastMsg = message.content;
                             }
                             chat.lastMsgDate = message.dateTime;
@@ -179,7 +180,9 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                                     Collections.sort(chats, new Comparator<Chat>() {
                                         @Override
                                         public int compare(Chat o1, Chat o2) {
-                                            return (int)((long)o2.lastMsgDate - (long)o1.lastMsgDate);
+                                            long lastMsgDate1 = o1.lastMsgDate == null ? 0L : (long) o1.lastMsgDate;
+                                            long lastMsgDate2 = o2.lastMsgDate == null ? 0L : (long) o2.lastMsgDate;
+                                            return (int)(lastMsgDate2-lastMsgDate1);
                                         }
                                     });
 

@@ -25,6 +25,9 @@ public class Chat {
     @Exclude
     public String  lastMsgSenderName;
 
+    @Exclude
+    public MessageTypeEnum lastMsgType;
+
     public String name;
     public String lastMsgId;
     public Map<String, Object> members = new HashMap<>();
