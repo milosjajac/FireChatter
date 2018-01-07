@@ -133,11 +133,20 @@
 
     </android.support.design.widget.TextInputLayout>
 
+    <TextView
+        android:id="@+id/login_activity_forgot_password_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="left"
+        android:layout_marginStart="4dp"
+        android:focusable="true"
+        android:clickable="true"
+        android:text="@string/login_activity_forgot_password_btn"/>
+
     <Button
         android:id="@+id/login_activity_login_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:theme="@style/PrimaryButton"
         android:text="@string/login_activity_login_btn"/>
 
@@ -145,7 +154,6 @@
         android:id="@+id/login_activity_register_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:gravity="center"
         android:focusable="true"
         android:clickable="true"
