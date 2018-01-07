@@ -127,7 +127,6 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                 chat.id = dataSnapshot.getKey();
                 final int ind = chatIndexOf(chat);
 
-                //TODO optimisation
                 if (chat.lastMsgId != null) {
                     dbRef.child("messages").child(chat.id).child(chat.lastMsgId).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
@@ -145,11 +144,7 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                                 public void onDataChange(DataSnapshot dataSnapshot2) {
                                     chat.lastMsgSenderName = dataSnapshot2.getValue(String.class);
 
-                                    if (ind == -1) {
-                                        chats.add(0, chat);
-                                    } else {
-                                        chats.set(ind, chat);
-                                    }
+                                    updateChatList(chat,ind);
 
                                     Collections.sort(chats, new Comparator<Chat>() {
                                         @Override
@@ -159,34 +154,6 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                                             return (int)(lastMsgDate2-lastMsgDate1);
                                         }
                                     });
-
-                                    if (chat.name == null || chat.name.isEmpty()) {
-                                        String otherMemberId = "";
-                                        for (String memberId : chat.members.keySet()) {
-                                            if (!memberId.equals(currentUserId)) {
-                                                otherMemberId = memberId;
-                                            }
-                                        }
-
-                                        usersDbRef.child(otherMemberId).addListenerForSingleValueEvent(new ValueEventListener() {
-                                            @Override
-                                            public void onDataChange(DataSnapshot dataSnapshot3) {
-                                                User otherMember = dataSnapshot3.getValue(User.class);
-                                                chat.name = otherMember.name;
-                                                chat.avatarUrl = otherMember.avatarUrl;
-
-                                                chatsAdapter.notifyDataSetChanged();
-                                            }
-
-                                            @Override
-                                            public void onCancelled(DatabaseError databaseError) {
-
-                                            }
-                                        });
-                                    } else {
-                                        chatsAdapter.notifyDataSetChanged();
-                                    }
-
                                 }
 
                                 @Override
@@ -202,38 +169,7 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                         }
                     });
                 } else {
-                    if (ind == -1) {
-                        chats.add(0, chat);
-                    } else {
-                        chats.set(ind, chat);
-                    }
-
-                    if (chat.name == null || chat.name.isEmpty()) {
-                        String otherMemberId = "";
-                        for (String memberId : chat.members.keySet()) {
-                            if (!memberId.equals(currentUserId)) {
-                                otherMemberId = memberId;
-                            }
-                        }
-
-                        usersDbRef.child(otherMemberId).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                User otherMember = dataSnapshot.getValue(User.class);
-                                chat.name = otherMember.name;
-                                chat.avatarUrl = otherMember.avatarUrl;
-
-                                chatsAdapter.notifyDataSetChanged();
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-                    } else {
-                        chatsAdapter.notifyDataSetChanged();
-                    }
+                    updateChatList(chat,ind);
                 }
             }
             @Override
@@ -252,14 +188,39 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
         return -1;
     }
 
-    //TODO realtime sort
-    private void addChatToCorrectPosition(Chat chat) {
-//        int ind = 0;
-//        while (ind < chats.size() && (long) chat.lastMsgDate < (long) chats.get(ind).lastMsgDate) {
-//            ind += 1;
-//        }
-//        chats.add(ind, chat);
-//        return ind;
+    private void updateChatList(final Chat chat, int ind) {
+        if (ind == -1) {
+            chats.add(0, chat);
+        } else {
+            chats.set(ind, chat);
+        }
+
+        if (chat.name == null || chat.name.isEmpty()) {
+            String otherMemberId = "";
+            for (String memberId : chat.members.keySet()) {
+                if (!memberId.equals(currentUserId)) {
+                    otherMemberId = memberId;
+                }
+            }
+
+            usersDbRef.child(otherMemberId).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    User otherMember = dataSnapshot.getValue(User.class);
+                    chat.name = otherMember.name;
+                    chat.avatarUrl = otherMember.avatarUrl;
+
+                    chatsAdapter.notifyDataSetChanged();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        } else {
+            chatsAdapter.notifyDataSetChanged();
+        }
     }
 
     @Override
