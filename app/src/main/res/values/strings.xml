@@ -25,7 +25,7 @@
     <string name="register_activity_weak_password_error">Password too weak</string>
 
     <string name="main_activity_chats_empty_msg">No active chats, better start some!</string>
-    <string name="main_activity_no_chat_messages">- This chat is empty. -</string>
+    <string name="main_activity_no_chat_messages">- This chat is empty -</string>
     <string name="main_menu_logout">Logout</string>
 
     <string name="users_activity_title">Start a new chat</string>
