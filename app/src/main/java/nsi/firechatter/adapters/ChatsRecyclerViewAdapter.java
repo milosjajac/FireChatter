@@ -93,6 +93,11 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
                 holder.chatLastTimeTv.setTypeface(null, Typeface.BOLD);
             }
         }
+        else
+        {
+            holder.chatLastMsgTv.setText("This is new conversation");
+            holder.chatLastTimeTv.setText("");
+        }
         if (holder.chat.avatarUrl != null && !holder.chat.avatarUrl.isEmpty()) {
             Glide.with(context)
                     .load(holder.chat.avatarUrl)

@@ -408,18 +408,20 @@ public class ChatActivity extends AppCompatActivity {
                 }
             } else if (size > 1) {
                     for (String userId : usersSeen.keySet()) {
-                        long lastUserActivity = usersSeen.get(userId);
-                        if (lastUserActivity == SECRET_DATE || lastUserActivity > lastMessageTime) {
-                            if (text.isEmpty()) {
-                                text = members.get(userId).name;
-                            } else {
-                                text = text + ", " + members.get(userId).name;
+                        if (!lastMessageSenderId.equals(userId)) {
+                            long lastUserActivity = usersSeen.get(userId);
+                            if (lastUserActivity == SECRET_DATE || lastUserActivity > lastMessageTime) {
+                                if (text.isEmpty()) {
+                                    text = members.get(userId).name;
+                                } else {
+                                    text = text + ", " + members.get(userId).name;
+                                }
                             }
                         }
                     }
                     if(!text.isEmpty()){
                         int count = text.length() - text.replace(",", "").length();
-                        if (count==size)
+                        if (count==size-1)
                         {
                             text = "everyone";
                         }
