@@ -254,6 +254,7 @@ public class ChatActivity extends AppCompatActivity {
                 messages.add(0, mMessage);
 
                 messagesAdapter.notifyItemInserted(0);
+                messagesEmptyText.setVisibility(View.GONE);
                 messagesProgressBar.setVisibility(View.GONE);
             }
 
@@ -277,6 +278,12 @@ public class ChatActivity extends AppCompatActivity {
 
             }
         });
+
+        if(messages.size()==0)
+        {
+            messagesEmptyText.setVisibility(View.VISIBLE);
+            messagesProgressBar.setVisibility(View.GONE);
+        }
     }
 
     private void startTrackingWhoIsTyping() {

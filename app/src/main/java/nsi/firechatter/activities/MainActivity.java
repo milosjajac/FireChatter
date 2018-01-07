@@ -114,6 +114,12 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
 
             }
         });
+
+        if(chats.size()==0)
+        {
+            chatsEmptyText.setVisibility(View.VISIBLE);
+            chatsProgressBar.setVisibility(View.GONE);
+        }
     }
 
     private void getChatAndSetupUI(final String chatId) {
@@ -122,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
             public void onDataChange(DataSnapshot dataSnapshot) {
                 chatsRecyclerView.setVisibility(View.VISIBLE);
                 chatsProgressBar.setVisibility(View.GONE);
+                chatsEmptyText.setVisibility(View.GONE);
 
                 final Chat chat = dataSnapshot.getValue(Chat.class);
                 chat.id = dataSnapshot.getKey();
