@@ -23,6 +23,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import nsi.firechatter.R;
@@ -33,6 +35,11 @@ import nsi.firechatter.models.MessageTypeEnum;
 import nsi.firechatter.models.User;
 
 public class MainActivity extends AppCompatActivity implements ChatsRecyclerViewAdapter.OnChatInteractionListener {
+    @Override
+    protected void onResume() {
+        super.onResume();
+        chatsAdapter.notifyDataSetChanged();
+    }
 
     private RecyclerView chatsRecyclerView;
     private ProgressBar chatsProgressBar;
@@ -133,10 +140,17 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                             chat.lastMsgDate = message.dateTime;
 
                             if (ind == -1) {
-                                addChatToCorrectPosition(chat);
+                                chats.add(0, chat);
                             } else {
                                 chats.set(ind, chat);
                             }
+
+                            Collections.sort(chats, new Comparator<Chat>() {
+                                @Override
+                                public int compare(Chat o1, Chat o2) {
+                                    return (int)((long)o2.lastMsgDate - (long)o1.lastMsgDate);
+                                }
+                            });
 
                             if (chat.name == null || chat.name.isEmpty()) {
                                 String otherMemberId = "";
@@ -223,13 +237,13 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
     }
 
     //TODO realtime sort
-    private int addChatToCorrectPosition(Chat chat) {
-        int ind = 0;
-        while (ind < chats.size() && (long) chat.lastMsgDate < (long) chats.get(ind).lastMsgDate) {
-            ind += 1;
-        }
-        chats.add(ind, chat);
-        return ind;
+    private void addChatToCorrectPosition(Chat chat) {
+//        int ind = 0;
+//        while (ind < chats.size() && (long) chat.lastMsgDate < (long) chats.get(ind).lastMsgDate) {
+//            ind += 1;
+//        }
+//        chats.add(ind, chat);
+//        return ind;
     }
 
     @Override

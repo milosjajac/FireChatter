@@ -216,7 +216,6 @@ public class ChatActivity extends AppCompatActivity {
                     }
                 }
             }
-
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
@@ -225,12 +224,10 @@ public class ChatActivity extends AppCompatActivity {
             public void onChildRemoved(DataSnapshot dataSnapshot) {
 
             }
-
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
@@ -420,9 +417,9 @@ public class ChatActivity extends AppCompatActivity {
                         }
                     }
                     if(!text.isEmpty()){
-                        int count = text.length() - text.replace(",", "").length();
-                        if((lastMessageSenderId.equals(currentUserId) && count == size-1)||
-                                (!lastMessageSenderId.equals(currentUserId) && count==size-2))
+                        int count = text.length() - text.replace(",", "").length()+1;
+                        if((lastMessageSenderId.equals(currentUserId) && count == size)||
+                                (!lastMessageSenderId.equals(currentUserId) && count==size-1))
                         {
                             text = "everyone";
                         }
@@ -433,7 +430,6 @@ public class ChatActivity extends AppCompatActivity {
 
         seenIndicatorText.setText(text);
     }
-
 
     private void onImageClick() {
         checkReadStoragePermission();
@@ -451,7 +447,6 @@ public class ChatActivity extends AppCompatActivity {
             onStoragePermissionGranted();
         }
     }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == RC_STORAGE_PERMISSION) {

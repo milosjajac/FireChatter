@@ -1,9 +1,11 @@
 package nsi.firechatter.adapters;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.v7.widget.RecyclerView;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -92,6 +94,13 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
                 holder.chatLastTimeTv.setTextColor(Color.BLACK);
                 holder.chatLastTimeTv.setTypeface(null, Typeface.BOLD);
             }
+            else
+            {
+                holder.chatLastMsgTv.setTextColor(fetchPrimaryColor());
+                holder.chatLastMsgTv.setTypeface(null, Typeface.NORMAL);
+                holder.chatLastTimeTv.setTextColor(fetchPrimaryColor());
+                holder.chatLastTimeTv.setTypeface(null, Typeface.NORMAL);
+            }
         }
         else
         {
@@ -112,6 +121,17 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
                 }
             }
         });
+    }
+
+    private int fetchPrimaryColor() {
+        TypedValue typedValue = new TypedValue();
+
+        TypedArray a = context.obtainStyledAttributes(typedValue.data, new int[] { R.attr.colorPrimary });
+        int color = a.getColor(0, 0);
+
+        a.recycle();
+
+        return color;
     }
 
     @Override
