@@ -84,6 +84,7 @@ public class ChatActivity extends AppCompatActivity {
 
 
     private FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    private String currentUserId = currentUser.getUid();
     private DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
     private final DatabaseReference usersDbRef = dbRef.child("users");
     private DatabaseReference chatsDbRef = dbRef.child("chats");
@@ -161,7 +162,7 @@ public class ChatActivity extends AppCompatActivity {
         intentFilter.setPriority(100);
         registerReceiver(newMessageNotificationReceiver, intentFilter);
 
-        chatsDbRef.child(chatId).child("members").child(currentUser.getUid()).setValue(SECRET_DATE);
+        chatsDbRef.child(chatId).child("members").child(currentUserId).setValue(SECRET_DATE);
     }
 
     @Override
@@ -169,58 +170,85 @@ public class ChatActivity extends AppCompatActivity {
         super.onPause();
         unregisterReceiver(newMessageNotificationReceiver);
 
-        chatsDbRef.child(chatId).child("members").child(currentUser.getUid()).setValue(ServerValue.TIMESTAMP);
+        chatsDbRef.child(chatId).child("members").child(currentUserId).setValue(ServerValue.TIMESTAMP);
     }
 
     private void getChatAndSetupUI() {
         final String loggedUserId = FirebaseAuth.getInstance().getUid();
 
-        chatsDbRef.child(chatId).addListenerForSingleValueEvent(new ValueEventListener() {
+        chatsDbRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                if(dataSnapshot.getKey().equals(chatId)) {
+                    final Chat chat = dataSnapshot.getValue(Chat.class);
+
+                    if (chat.name != null && !chat.name.isEmpty()) {
+                        setTitle(chat.name);
+                    }
+
+                    final int[] counter = {chat.members.size() - 1};
+                    for (final String memberId : chat.members.keySet()) {
+                        if (memberId.equals(loggedUserId)) {
+                            continue;
+                        }
+
+                        usersDbRef.child(memberId).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot1) {
+                                User member = dataSnapshot1.getValue(User.class);
+                                members.put(memberId, member);
+
+                                counter[0] -= 1;
+                                if (counter[0] == 0) {
+                                    if (members.size() == 1) {
+                                        setTitle(members.entrySet().iterator().next().getValue().name);
+                                    }
+
+                                    startTrackingMessages();
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        chatsDbRef.child(chatId).child("lastMsgId").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                final Chat chat = dataSnapshot.getValue(Chat.class);
-
-                if (chat.name != null && !chat.name.isEmpty()) {
-                    setTitle(chat.name);
-                }
-
-                if(chat.lastMsgId!=null) {
-                    messagesDbRef.child(chat.lastMsgId).addListenerForSingleValueEvent(new ValueEventListener() {
+                String messageId = dataSnapshot.getValue(String.class);
+                if(messageId != null) {
+                    messagesDbRef.child(messageId).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot1) {
                             Message message = dataSnapshot1.getValue(Message.class);
                             lastMessageSenderId = message.senderId;
                             lastMessageTime = (long) message.dateTime;
-                            //updateSeenIndicatorText();
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-                }
-
-                final int[] counter = {chat.members.size() - 1};
-                for (final String memberId : chat.members.keySet()) {
-                    if (memberId.equals(loggedUserId)) {
-                        continue;
-                    }
-
-                    usersDbRef.child(memberId).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot1) {
-                            User member = dataSnapshot1.getValue(User.class);
-                            members.put(memberId, member);
-
-                            counter[0] -= 1;
-                            if (counter[0] == 0) {
-                                if (members.size() == 1) {
-                                    setTitle(members.entrySet().iterator().next().getValue().name);
-                                }
-
-                                startTrackingMessages();
-                            }
+                            updateSeenIndicatorText();
                         }
 
                         @Override
@@ -240,7 +268,7 @@ public class ChatActivity extends AppCompatActivity {
         chatsDbRef.child(chatId).child("typing").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                if (!dataSnapshot.getKey().equals(currentUser.getUid())) {
+                if (!dataSnapshot.getKey().equals(currentUserId)) {
                     usersTyping.put(dataSnapshot.getKey(), (String) dataSnapshot.getValue());
                     updateTypingIndicatorText();
                 }
@@ -253,10 +281,43 @@ public class ChatActivity extends AppCompatActivity {
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.getKey().equals(currentUser.getUid())) {
+                if (!dataSnapshot.getKey().equals(currentUserId)) {
                     usersTyping.remove(dataSnapshot.getKey());
                     updateTypingIndicatorText();
                 }
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        chatsDbRef.child(chatId).child("members").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                if (!dataSnapshot.getKey().equals(currentUserId)) {
+                    usersSeen.put(dataSnapshot.getKey(), (long) dataSnapshot.getValue());
+                    updateSeenIndicatorText();
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                if (!dataSnapshot.getKey().equals(currentUserId)) {
+                    usersSeen.put(dataSnapshot.getKey(), (long) dataSnapshot.getValue());
+                    updateSeenIndicatorText();
+                }
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
             }
 
             @Override
@@ -304,40 +365,6 @@ public class ChatActivity extends AppCompatActivity {
 
             }
         });
-
-        chatsDbRef.child(chatId).child("members").addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                String currentUserId = currentUser.getUid();
-                if (!dataSnapshot.getKey().equals(currentUserId)) {
-                    usersSeen.put(dataSnapshot.getKey(), (long) dataSnapshot.getValue());
-                    updateSeenIndicatorText();
-                }
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                if (!dataSnapshot.getKey().equals(currentUser.getUid())) {
-                    usersSeen.put(dataSnapshot.getKey(), (long) dataSnapshot.getValue());
-                    updateSeenIndicatorText();
-                }
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
     }
 
     private void updateTypingIndicatorText() {
@@ -366,7 +393,7 @@ public class ChatActivity extends AppCompatActivity {
         if(lastMessageSenderId != null) {
             int size = usersSeen.size();
             if (size == 1) {
-                if (lastMessageSenderId.equals(currentUser.getUid())) {
+                if (lastMessageSenderId.equals(currentUserId)) {
                     for (String userId : usersSeen.keySet()) {
                         long lastUserActivity = usersSeen.get(userId);
                         if (lastUserActivity == SECRET_DATE || lastUserActivity > lastMessageTime) {
@@ -446,7 +473,7 @@ public class ChatActivity extends AppCompatActivity {
             if (data != null && data.getData() != null) {
                 messagesProgressBar.setVisibility(View.VISIBLE);
 
-                final Message newMessage = new Message(currentUser.getUid(), "", MessageTypeEnum.IMAGE);
+                final Message newMessage = new Message(currentUserId, "", MessageTypeEnum.IMAGE);
                 newMessage.id = messagesDbRef.push().getKey();
                 newMessage.dateTime = ServerValue.TIMESTAMP;
 
@@ -500,7 +527,7 @@ public class ChatActivity extends AppCompatActivity {
         if(!message.isEmpty()) {
             Map<String, Object> updates = new HashMap<>();
 
-            Message newMessage = new Message(currentUser.getUid(), message, MessageTypeEnum.TEXT);
+            Message newMessage = new Message(currentUserId, message, MessageTypeEnum.TEXT);
 
             newMessage.id = messagesDbRef.push().getKey();
             newMessage.dateTime = ServerValue.TIMESTAMP;
@@ -575,11 +602,11 @@ public class ChatActivity extends AppCompatActivity {
     };
 
     private void setTypingIndicator() {
-        chatsDbRef.child(chatId).child("typing").child(currentUser.getUid()).onDisconnect().removeValue();
-        chatsDbRef.child(chatId).child("typing").child(currentUser.getUid()).setValue(currentUser.getDisplayName());
+        chatsDbRef.child(chatId).child("typing").child(currentUserId).onDisconnect().removeValue();
+        chatsDbRef.child(chatId).child("typing").child(currentUserId).setValue(currentUser.getDisplayName());
     }
 
     private void removeTypingIndicator() {
-        chatsDbRef.child(chatId).child("typing").child(currentUser.getUid()).removeValue();
+        chatsDbRef.child(chatId).child("typing").child(currentUserId).removeValue();
     }
 }
