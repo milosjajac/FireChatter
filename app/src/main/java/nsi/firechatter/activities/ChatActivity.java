@@ -205,6 +205,8 @@ public class ChatActivity extends AppCompatActivity {
                                     }
 
                                     startTrackingMessages();
+                                    startTrackingWhoIsTyping();
+                                    startTrackingWhoHasSeen();
                                 }
                             }
 
@@ -228,100 +230,6 @@ public class ChatActivity extends AppCompatActivity {
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
             }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        chatsDbRef.child(chatId).child("lastMsgId").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String messageId = dataSnapshot.getValue(String.class);
-                if(messageId != null) {
-                    messagesDbRef.child(messageId).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot1) {
-                            Message message = dataSnapshot1.getValue(Message.class);
-                            lastMessageSenderId = message.senderId;
-                            lastMessageTime = (long) message.dateTime;
-                            updateSeenIndicatorText();
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        chatsDbRef.child(chatId).child("typing").addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                if (!dataSnapshot.getKey().equals(currentUserId)) {
-                    usersTyping.put(dataSnapshot.getKey(), (String) dataSnapshot.getValue());
-                    updateTypingIndicatorText();
-                }
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.getKey().equals(currentUserId)) {
-                    usersTyping.remove(dataSnapshot.getKey());
-                    updateTypingIndicatorText();
-                }
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        chatsDbRef.child(chatId).child("members").addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                if (!dataSnapshot.getKey().equals(currentUserId)) {
-                    usersSeen.put(dataSnapshot.getKey(), (long) dataSnapshot.getValue());
-                    updateSeenIndicatorText();
-                }
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                if (!dataSnapshot.getKey().equals(currentUserId)) {
-                    usersSeen.put(dataSnapshot.getKey(), (long) dataSnapshot.getValue());
-                    updateSeenIndicatorText();
-                }
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
@@ -355,6 +263,71 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void startTrackingWhoIsTyping() {
+        chatsDbRef.child(chatId).child("typing").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                if (!dataSnapshot.getKey().equals(currentUserId)) {
+                    usersTyping.put(dataSnapshot.getKey(), (String) dataSnapshot.getValue());
+                    updateTypingIndicatorText();
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.getKey().equals(currentUserId)) {
+                    usersTyping.remove(dataSnapshot.getKey());
+                    updateTypingIndicatorText();
+                }
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void startTrackingWhoHasSeen() {
+        chatsDbRef.child(chatId).child("lastMsgId").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String messageId = dataSnapshot.getValue(String.class);
+                if(messageId != null) {
+                    messagesDbRef.child(messageId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot1) {
+                            Message message = dataSnapshot1.getValue(Message.class);
+                            lastMessageSenderId = message.senderId;
+                            lastMessageTime = (long) message.dateTime;
+                            updateSeenIndicatorText();
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                }
             }
 
             @Override
