@@ -178,10 +178,27 @@ public class ChatActivity extends AppCompatActivity {
         chatsDbRef.child(chatId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Chat chat = dataSnapshot.getValue(Chat.class);
+                final Chat chat = dataSnapshot.getValue(Chat.class);
 
                 if (chat.name != null && !chat.name.isEmpty()) {
                     setTitle(chat.name);
+                }
+
+                if(chat.lastMsgId!=null) {
+                    messagesDbRef.child(chat.lastMsgId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot1) {
+                            Message message = dataSnapshot1.getValue(Message.class);
+                            lastMessageSenderId = message.senderId;
+                            lastMessageTime = (long) message.dateTime;
+                            //updateSeenIndicatorText();
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
                 }
 
                 final int[] counter = {chat.members.size() - 1};
