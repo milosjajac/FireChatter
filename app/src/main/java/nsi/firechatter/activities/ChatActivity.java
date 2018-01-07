@@ -25,6 +25,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -334,6 +335,39 @@ public class ChatActivity extends AppCompatActivity {
                         }
                     });
                 }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        chatsDbRef.child(chatId).child("members").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                if (!dataSnapshot.getKey().equals(currentUserId)) {
+                    usersSeen.put(dataSnapshot.getKey(), (long) dataSnapshot.getValue());
+                    updateSeenIndicatorText();
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                if (!dataSnapshot.getKey().equals(currentUserId)) {
+                    usersSeen.put(dataSnapshot.getKey(), (long) dataSnapshot.getValue());
+                    updateSeenIndicatorText();
+                }
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
             }
 
             @Override
