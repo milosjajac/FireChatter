@@ -43,7 +43,8 @@
             android:id="@+id/sender_message_image_body"
             android:layout_width="wrap_content"
             android:layout_height="200dp"
-            android:maxWidth="300dp"
+            android:maxWidth="220dp"
+            android:scaleType="centerInside"
             android:adjustViewBounds="true"/>
 
         <TextView
