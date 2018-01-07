@@ -421,7 +421,8 @@ public class ChatActivity extends AppCompatActivity {
                     }
                     if(!text.isEmpty()){
                         int count = text.length() - text.replace(",", "").length();
-                        if (count==size-1)
+                        if((lastMessageSenderId.equals(currentUserId) && count == size-1)||
+                                (!lastMessageSenderId.equals(currentUserId) && count==size-2))
                         {
                             text = "everyone";
                         }
