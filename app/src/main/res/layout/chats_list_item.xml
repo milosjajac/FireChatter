@@ -38,7 +38,7 @@
         android:singleLine="true"
         android:ellipsize="end"
         android:textSize="16sp"
-        android:text="Sta bi bilo kad bi bilo"/>
+        android:text="Start this conversation"/>
 
     <TextView
         android:id="@+id/chats_item_time"
@@ -49,7 +49,6 @@
         android:singleLine="true"
         android:ellipsize="end"
         android:textSize="16sp"
-        android:text="18:15"
         app:layout_constraintLeft_toRightOf="@id/chats_item_name"/>
 
 </RelativeLayout>
