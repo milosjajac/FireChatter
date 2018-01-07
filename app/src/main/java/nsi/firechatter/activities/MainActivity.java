@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot1) {
                             Message message = dataSnapshot1.getValue(Message.class);
-                            chat.lastMsg = "Sent photo.";
+                            chat.lastMsg = "Sent a photo.";
                             if (message.type == MessageTypeEnum.TEXT) {
                                 chat.lastMsg = message.content;
                             }

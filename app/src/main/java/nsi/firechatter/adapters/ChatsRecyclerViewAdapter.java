@@ -13,12 +13,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.google.firebase.auth.FirebaseUser;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -88,7 +85,7 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
 
             long lastActivity = (long) holder.chat.members.get(currentUserId);
 
-            if (lastActivity != ChatActivity.SECRET_DATE && lastActivity < (long) holder.chat.lastMsgDate) {
+            if (lastActivity != ChatActivity.SPECIAL_TIME && lastActivity < (long) holder.chat.lastMsgDate) {
                 holder.chatLastMsgTv.setTextColor(Color.BLACK);
                 holder.chatLastMsgTv.setTypeface(null, Typeface.BOLD);
                 holder.chatLastTimeTv.setTextColor(Color.BLACK);

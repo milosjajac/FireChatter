@@ -2,7 +2,6 @@ package nsi.firechatter.activities;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,13 +10,10 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
-import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -30,16 +26,11 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -70,7 +61,7 @@ public class ChatActivity extends AppCompatActivity {
     public static final String EXTRA_CHAT_ID = "chatId";
     private static final int RC_STORAGE_PERMISSION = 1;
     private static final int RC_CHOOSE_IMAGE = 2;
-    public static final long SECRET_DATE = 766630659564L; //18.04.1994.
+    public static final long SPECIAL_TIME = 0;
 
     private ImageView imageBtn;
     private ImageView sendBtn;
@@ -169,7 +160,7 @@ public class ChatActivity extends AppCompatActivity {
         intentFilter.setPriority(100);
         registerReceiver(newMessageNotificationReceiver, intentFilter);
 
-        chatsDbRef.child(chatId).child("members").child(currentUserId).setValue(SECRET_DATE);
+        chatsDbRef.child(chatId).child("members").child(currentUserId).setValue(SPECIAL_TIME);
     }
 
     @Override
@@ -212,8 +203,17 @@ public class ChatActivity extends AppCompatActivity {
                                     }
 
                                     startTrackingMessages();
-                                    startTrackingWhoIsTyping();
-                                    startTrackingWhoHasSeen();
+
+                                    // Start tracking for typing and seen indicators some time
+                                    // later to avoid crashing for whatever goddamn reason
+                                    final Handler handler = new Handler();
+                                    handler.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            startTrackingWhoIsTyping();
+                                            startTrackingWhoHasSeen();
+                                        }
+                                    }, 500);
                                 }
                             }
 
@@ -317,13 +317,13 @@ public class ChatActivity extends AppCompatActivity {
     private void startTrackingWhoHasSeen() {
         chatsDbRef.child(chatId).child("lastMsgId").addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String messageId = dataSnapshot.getValue(String.class);
+            public void onDataChange(DataSnapshot lastMsgIdSnapshot) {
+                String messageId = lastMsgIdSnapshot.getValue(String.class);
                 if(messageId != null) {
                     messagesDbRef.child(messageId).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
-                        public void onDataChange(DataSnapshot dataSnapshot1) {
-                            Message message = dataSnapshot1.getValue(Message.class);
+                        public void onDataChange(DataSnapshot messageSnapshot) {
+                            Message message = messageSnapshot.getValue(Message.class);
                             lastMessageSenderId = message.senderId;
                             lastMessageTime = (long) message.dateTime;
                             updateSeenIndicatorText();
@@ -406,9 +406,9 @@ public class ChatActivity extends AppCompatActivity {
                 if (lastMessageSenderId.equals(currentUserId)) {
                     for (String userId : usersSeen.keySet()) {
                         long lastUserActivity = usersSeen.get(userId);
-                        if (lastUserActivity == SECRET_DATE || lastUserActivity > lastMessageTime) {
+                        if (lastUserActivity == SPECIAL_TIME || lastUserActivity > lastMessageTime) {
 //                            DateFormat df = new SimpleDateFormat("HH:mm");
-//                            if (lastUserActivity == SECRET_DATE) {
+//                            if (lastUserActivity == SPECIAL_TIME) {
 //                                lastUserActivity = lastMessageTime;
 //                            }
 //                            text = "Seen" + df.format(lastUserActivity);
@@ -420,7 +420,7 @@ public class ChatActivity extends AppCompatActivity {
                     for (String userId : usersSeen.keySet()) {
                         if (!lastMessageSenderId.equals(userId)) {
                             long lastUserActivity = usersSeen.get(userId);
-                            if (lastUserActivity == SECRET_DATE || lastUserActivity > lastMessageTime) {
+                            if (lastUserActivity == SPECIAL_TIME || lastUserActivity > lastMessageTime) {
                                 if (text.isEmpty()) {
                                     text = members.get(userId).name;
                                 } else {
