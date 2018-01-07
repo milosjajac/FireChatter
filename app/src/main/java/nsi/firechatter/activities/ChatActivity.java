@@ -10,6 +10,8 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -91,13 +93,13 @@ public class ChatActivity extends AppCompatActivity {
     private DatabaseReference messagesDbRef;
 
     private List<Message> messages = new ArrayList<>();
+    private LinearLayoutManager layoutManager;
     private RecyclerView messagesRecyclerView;
     private MessagesRecyclerViewAdapter messagesAdapter;
     private boolean isTyping;
     private Map<String, String> usersTyping = new LinkedHashMap<>();
     private Map<String, Long> usersSeen = new LinkedHashMap<>();
     private HashMap<String, User> members = new HashMap<>();
-    private int lastScrolledToPosition = 0;
 
     private BroadcastReceiver newMessageNotificationReceiver = new BroadcastReceiver() {
         @Override
@@ -142,10 +144,14 @@ public class ChatActivity extends AppCompatActivity {
         messagesEmptyText = findViewById(R.id.chat_activity_message_empty_txt);
 
         messagesRecyclerView = findViewById(R.id.chat_activity_message_list);
+        layoutManager = new LinearLayoutManager(ChatActivity.this);
+        layoutManager.setReverseLayout(true);
+        layoutManager.setStackFromEnd(true);
+        messagesRecyclerView.setLayoutManager(layoutManager);
         messagesAdapter = new MessagesRecyclerViewAdapter(this, messages);
         messagesRecyclerView.setAdapter(messagesAdapter);
         messagesRecyclerView.addOnLayoutChangeListener(scrollMesagesOnOpenKeyboard);
-        messagesRecyclerView.addOnChildAttachStateChangeListener(newMessageAttachedListener);
+        messagesAdapter.registerAdapterDataObserver(newMessageObserver);
 
         chatId = getIntent().getStringExtra(EXTRA_CHAT_ID);
         messagesDbRef = dbRef.child("messages").child(chatId);
@@ -158,7 +164,7 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        IntentFilter intentFilter = new IntentFilter("dofijghdoflkghdflk");
+        IntentFilter intentFilter = new IntentFilter("notification");
         intentFilter.setPriority(100);
         registerReceiver(newMessageNotificationReceiver, intentFilter);
 
@@ -244,9 +250,9 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 final Message mMessage = dataSnapshot.getValue(Message.class);
-                messages.add(mMessage);
+                messages.add(0, mMessage);
 
-                messagesAdapter.notifyDataSetChanged();
+                messagesAdapter.notifyItemInserted(0);
                 messagesProgressBar.setVisibility(View.GONE);
             }
 
@@ -522,26 +528,19 @@ public class ChatActivity extends AppCompatActivity {
                 messagesRecyclerView.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        messagesRecyclerView.scrollToPosition(
-                                messagesRecyclerView.getAdapter().getItemCount() - 1);
+                        messagesRecyclerView.scrollToPosition(0);
                     }
                 }, 0);
             }
         }
     };
 
-    private RecyclerView.OnChildAttachStateChangeListener newMessageAttachedListener = new RecyclerView.OnChildAttachStateChangeListener() {
+    private RecyclerView.AdapterDataObserver newMessageObserver = new RecyclerView.AdapterDataObserver() {
         @Override
-        public void onChildViewAttachedToWindow(View view) {
-            if (messagesRecyclerView.getAdapter().getItemCount() > lastScrolledToPosition + 1) {
-                messagesRecyclerView.smoothScrollToPosition(messagesRecyclerView.getAdapter().getItemCount() - 1);
-                lastScrolledToPosition = messagesRecyclerView.getAdapter().getItemCount() - 1;
-            }
-        }
-
-        @Override
-        public void onChildViewDetachedFromWindow(View view) {
-
+        public void onItemRangeInserted(int positionStart, int itemCount) {
+            super.onItemRangeInserted(positionStart, itemCount);
+            messagesRecyclerView.removeCallbacks(scrollToBottom);
+            messagesRecyclerView.postDelayed(scrollToBottom, 100);
         }
     };
 
@@ -569,6 +568,13 @@ public class ChatActivity extends AppCompatActivity {
         @Override
         public void afterTextChanged(Editable editable) {
 
+        }
+    };
+
+    private Runnable scrollToBottom = new Runnable() {
+        @Override
+        public void run() {
+            messagesRecyclerView.scrollToPosition(0);
         }
     };
 

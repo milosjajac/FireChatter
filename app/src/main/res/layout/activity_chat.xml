@@ -25,8 +25,7 @@
         android:layout_above="@+id/chat_activity_bottom_separator"
         android:layout_marginTop="?android:attr/actionBarSize"
         android:paddingBottom="20dp"
-        android:clipToPadding="false"
-        app:layoutManager="LinearLayoutManager"/>
+        android:clipToPadding="false"/>
         <!--tools:listitem="@layout/"-->
 
     <ProgressBar

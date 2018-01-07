@@ -16,7 +16,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
         HashMap<String, String> data = new HashMap<>(remoteMessage.getData());
 
-        Intent intent = new Intent("dofijghdoflkghdflk");
+        Intent intent = new Intent("notification");
         intent.putExtra("data", data);
         sendOrderedBroadcast(intent, null);
     }
