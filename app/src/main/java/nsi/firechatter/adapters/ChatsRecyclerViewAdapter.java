@@ -1,9 +1,11 @@
 package nsi.firechatter.adapters;
 
+import android.content.AsyncQueryHandler;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -13,9 +15,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestFutureTarget;
+import com.bumptech.glide.request.RequestOptions;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -61,7 +67,7 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
         String msgPrefix = "";
 
         if(holder.chat.lastMsgId!=null) {
-            if(holder.chat.lastMsgSenderId.equals(currentUserId))
+            if(holder.chat.lastMsg.senderId.equals(currentUserId))
             {
                 msgPrefix = "You";
             }
@@ -72,15 +78,16 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
             }
 
             if(!msgPrefix.isEmpty()) {
-                if (holder.chat.lastMsgType == MessageTypeEnum.TEXT) {
+                if (holder.chat.lastMsg.type == MessageTypeEnum.TEXT) {
                     msgPrefix = msgPrefix + ": ";
                 }
             }
 
-            holder.chatLastMsgTv.setText(msgPrefix.concat(holder.chat.lastMsg));
+            holder.chatLastMsgTv.setText(msgPrefix.concat(holder.chat.lastMsg.content));
+
 
             int daysDiff = (int) (TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis())
-                    - TimeUnit.MILLISECONDS.toDays((long) holder.chat.lastMsgDate));
+                    - TimeUnit.MILLISECONDS.toDays((long) holder.chat.lastMsg.dateTime));
 
             switch (daysDiff) {
                 case 0:
@@ -99,11 +106,11 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
                     break;
             }
 
-            holder.chatLastTimeTv.setText(df.format(holder.chat.lastMsgDate));
+            holder.chatLastTimeTv.setText(df.format(holder.chat.lastMsg.dateTime));
 
             long lastActivity = (long) holder.chat.members.get(currentUserId);
 
-            if (lastActivity != ChatActivity.SPECIAL_TIME && lastActivity < (long) holder.chat.lastMsgDate) {
+            if (lastActivity != ChatActivity.SPECIAL_TIME && lastActivity < (long) holder.chat.lastMsg.dateTime) {
                 holder.chatLastMsgTv.setTextColor(Color.BLACK);
                 holder.chatLastMsgTv.setTypeface(null, Typeface.BOLD);
                 holder.chatLastTimeTv.setTextColor(Color.BLACK);
@@ -126,6 +133,11 @@ public class ChatsRecyclerViewAdapter extends RecyclerView.Adapter<ChatsRecycler
         if (holder.chat.avatarUrl != null && !holder.chat.avatarUrl.isEmpty()) {
             Glide.with(context)
                     .load(holder.chat.avatarUrl)
+                    .into(holder.chatAvatarImg);
+        }else {
+            Glide.with(context)
+                    .load(R.drawable.firechatter_chat_group_logo)
+                    .apply(new RequestOptions().fitCenter())
                     .into(holder.chatAvatarImg);
         }
 

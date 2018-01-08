@@ -14,26 +14,23 @@ public class Chat {
     public String avatarUrl;
 
     @Exclude
-    public String lastMsg;
-
-    @Exclude
-    public Object lastMsgDate;
-
-    @Exclude
-    public String lastMsgSenderId;
+    public Message lastMsg;
 
     @Exclude
     public String  lastMsgSenderName;
-
-    @Exclude
-    public MessageTypeEnum lastMsgType;
 
     public String name;
     public String lastMsgId;
     public Map<String, Object> members = new HashMap<>();
 
     public Chat() {
+        lastMsg = new Message();
         // Default constructor required for calls to DataSnapshot.getValue(Chat.class)
+    }
+
+    public long getLastMsgTime()
+    {
+        return lastMsg.dateTime == null ?  0L : (long) lastMsg.dateTime;
     }
 
 }

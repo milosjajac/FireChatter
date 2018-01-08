@@ -102,6 +102,7 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
 
             messageText = (TextView) itemView.findViewById(R.id.my_message_text_body);
             messageImage = (ImageView) itemView.findViewById(R.id.my_message_image_body);
+            Glide.with(context).load(R.drawable.loading).into(messageImage);
             timeText = (TextView) itemView.findViewById(R.id.my_message_time);
         }
 
@@ -117,11 +118,11 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
                     messageText.setVisibility(View.GONE);
                     String messageUrl = message.content;
                     if ( messageUrl!= null && !messageUrl.isEmpty()) {
-                    Glide.with(context)
-                            .load(messageUrl)
-                            .apply(new RequestOptions()
-                                    .fitCenter())
-                            .into(messageImage);
+                        Glide.with(context)
+                                .load(messageUrl)
+                                .apply(new RequestOptions()
+                                        .fitCenter())
+                                .into(messageImage);
                     }
                     break;
             }
@@ -140,6 +141,7 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter {
 
             messageText = (TextView) itemView.findViewById(R.id.sender_message_text_body);
             messageImage = (ImageView) itemView.findViewById(R.id.sender_message_image_body);
+            Glide.with(context).load(R.drawable.loading).into(messageImage);
             timeText = (TextView) itemView.findViewById(R.id.sender_message_time);
             nameText = (TextView) itemView.findViewById(R.id.sender_message_name);
             profileImage = (ImageView) itemView.findViewById(R.id.sender_message_avatar);

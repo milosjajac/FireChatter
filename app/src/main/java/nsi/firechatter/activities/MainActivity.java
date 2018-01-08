@@ -28,6 +28,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.ToLongFunction;
 
 import nsi.firechatter.R;
 import nsi.firechatter.adapters.ChatsRecyclerViewAdapter;
@@ -35,6 +36,10 @@ import nsi.firechatter.models.Chat;
 import nsi.firechatter.models.Message;
 import nsi.firechatter.models.MessageTypeEnum;
 import nsi.firechatter.models.User;
+
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.comparingLong;
+import static java.util.Comparator.nullsFirst;
 
 public class MainActivity extends AppCompatActivity implements ChatsRecyclerViewAdapter.OnChatInteractionListener {
     @Override
@@ -134,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
     }
 
     private void getChatAndSetupUI(final String chatId) {
-        chatsDbRef.child(chatId).addValueEventListener(new ValueEventListener() {
+        chatsDbRef.child(chatId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 chatsRecyclerView.setVisibility(View.VISIBLE);
@@ -143,35 +148,27 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
 
                 final Chat chat = dataSnapshot.getValue(Chat.class);
                 chat.id = dataSnapshot.getKey();
-                final int ind = chatIndexOf(chat);
+                final int ind = chatIndexOf(chat.id);
 
                 if (chat.lastMsgId != null) {
                     dbRef.child("messages").child(chat.id).child(chat.lastMsgId).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot1) {
                             Message message = dataSnapshot1.getValue(Message.class);
-                            chat.lastMsg = " sent a photo.";
-                            chat.lastMsgType = message.type;
-                            if (chat.lastMsgType == MessageTypeEnum.TEXT) {
-                                chat.lastMsg = message.content;
+                            chat.lastMsg.content = " sent a photo.";
+                            chat.lastMsg.type = message.type;
+                            if (chat.lastMsg.type == MessageTypeEnum.TEXT) {
+                                chat.lastMsg.content = message.content;
                             }
-                            chat.lastMsgDate = message.dateTime;
-                            chat.lastMsgSenderId = message.senderId;
-                            usersDbRef.child(chat.lastMsgSenderId).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
+                            chat.lastMsg.dateTime = message.dateTime;
+                            chat.lastMsg.senderId = message.senderId;
+                            usersDbRef.child(chat.lastMsg.senderId).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot2) {
                                     chat.lastMsgSenderName = dataSnapshot2.getValue(String.class);
 
                                     updateChatList(chat,ind);
-
-                                    Collections.sort(chats, new Comparator<Chat>() {
-                                        @Override
-                                        public int compare(Chat o1, Chat o2) {
-                                            long lastMsgDate1 = o1.lastMsgDate == null ? 0L : (long) o1.lastMsgDate;
-                                            long lastMsgDate2 = o2.lastMsgDate == null ? 0L : (long) o2.lastMsgDate;
-                                            return (int)(lastMsgDate2-lastMsgDate1);
-                                        }
-                                    });
+                                    sort();
                                 }
 
                                 @Override
@@ -197,18 +194,18 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
         });
     }
 
-    private int chatIndexOf(Chat chat) {
+    private int chatIndexOf(String chatId) {
         for (int i = 0; i < chats.size(); i++) {
-            if (chats.get(i).id == chat.id) {
+            if (chats.get(i).id == chatId) {
                 return i;
             }
         }
         return -1;
     }
 
-    private void updateChatList(final Chat chat, int ind) {
+    private void updateChatList(final Chat chat, final int ind) {
         if (ind == -1) {
-            chats.add(0, chat);
+            chats.add(chat);
         } else {
             chats.set(ind, chat);
         }
@@ -228,6 +225,7 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                     chat.name = otherMember.name;
                     chat.avatarUrl = otherMember.avatarUrl;
 
+                    startTrackingMessages(chat.id);
                     chatsAdapter.notifyDataSetChanged();
                 }
 
@@ -238,7 +236,116 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
             });
         } else {
             chatsAdapter.notifyDataSetChanged();
+            startTrackingMessages(chat.id);
         }
+    }
+
+    public void sort() {
+
+//        Collections.sort(chats, new Comparator<Chat>() {
+//            @Override
+//            public int compare(Chat o1, Chat o2) {
+//                return (int)(o2.getLastMsgTime() - o1.getLastMsgTime());
+//            }
+//        });
+
+        Collections.sort(chats, new Comparator<Chat>() {
+            @Override
+            public int compare(Chat o1, Chat o2) {
+                long lastMsgDate1 = o1.lastMsg.dateTime == null ? 0L : (long) o1.lastMsg.dateTime;
+                long lastMsgDate2 = o2.lastMsg.dateTime == null ? 0L : (long) o2.lastMsg.dateTime;
+                return (int)(lastMsgDate2-lastMsgDate1);
+            }
+        });
+    }
+
+    public void startTrackingMessages(final String chatId)
+    {
+        final boolean first[] = {true};
+        chatsDbRef.child(chatId).child("lastMsgId").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (first[0]) {
+                    first[0] = false;
+                } else {
+                    String lastMsgId = (String) dataSnapshot.getValue();
+
+                    if (lastMsgId != null) {
+                        dbRef.child("messages").child(chatId).child(lastMsgId).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot1) {
+                                int ind = chatIndexOf(chatId);
+                                final Chat chat = chats.get(ind);
+                                chats.remove(ind);
+
+                                Message message = dataSnapshot1.getValue(Message.class);
+
+                                chat.lastMsg.content = " sent a photo.";
+                                chat.lastMsg.type = message.type;
+                                if (chat.lastMsg.type == MessageTypeEnum.TEXT) {
+                                    chat.lastMsg.content = message.content;
+                                }
+                                chat.lastMsg.dateTime = message.dateTime;
+                                chat.lastMsg.senderId = message.senderId;
+                                usersDbRef.child(chat.lastMsg.senderId).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot2) {
+                                        chat.lastMsgSenderName = dataSnapshot2.getValue(String.class);
+                                        chats.add(0, chat);
+                                        chatsAdapter.notifyDataSetChanged();
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        chatsDbRef.child(chatId).child("members").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                if (!dataSnapshot.getKey().equals(currentUserId)) {
+                    chatsAdapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     @Override
