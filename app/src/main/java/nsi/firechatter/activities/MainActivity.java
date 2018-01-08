@@ -326,11 +326,13 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                int ind = chatIndexOf(chatId);
-                Chat chat = chats.get(ind);
-                chat.members.put(dataSnapshot.getKey(),dataSnapshot.getValue());
-                chats.set(ind,chat);
-                chatsAdapter.notifyDataSetChanged();
+                if(dataSnapshot.getKey().equals(currentUserId)) {
+                    int ind = chatIndexOf(chatId);
+                    Chat chat = chats.get(ind);
+                    chat.members.put(dataSnapshot.getKey(), dataSnapshot.getValue());
+                    chats.set(ind, chat);
+                    chatsAdapter.notifyDataSetChanged();
+                }
             }
 
             @Override
