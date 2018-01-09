@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
                 if (first[0]) {
                     first[0] = false;
                 } else {
-                    String lastMsgId = (String) dataSnapshot.getValue();
+                    final String lastMsgId = (String) dataSnapshot.getValue();
 
                     if (lastMsgId != null) {
                         dbRef.child("messages").child(chatId).child(lastMsgId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -280,6 +280,7 @@ public class MainActivity extends AppCompatActivity implements ChatsRecyclerView
 
                                 Message message = dataSnapshot1.getValue(Message.class);
 
+                                chat.lastMsgId = lastMsgId;
                                 chat.lastMsg.content = " sent a photo.";
                                 chat.lastMsg.type = message.type;
                                 if (chat.lastMsg.type == MessageTypeEnum.TEXT) {
