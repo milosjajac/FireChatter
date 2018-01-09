@@ -27,10 +27,4 @@ public class Chat {
         lastMsg = new Message();
         // Default constructor required for calls to DataSnapshot.getValue(Chat.class)
     }
-
-    public long getLastMsgTime()
-    {
-        return lastMsg.dateTime == null ?  0L : (long) lastMsg.dateTime;
-    }
-
 }
